@@ -33,5 +33,10 @@ out/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
+### 도구 ###
 .vscode/
+.claude/
+
+### local ###
+notes/
+application-local.yml
