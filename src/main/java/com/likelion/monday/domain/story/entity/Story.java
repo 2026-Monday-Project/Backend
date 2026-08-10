@@ -48,7 +48,7 @@ public class Story extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private StoryStatus status;
+    private StoryStatus status = StoryStatus.PENDING;
 
     @Column(nullable = false)
     private boolean performanceCandidate;

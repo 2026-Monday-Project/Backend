@@ -28,5 +28,5 @@ public class PerformanceContent extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private PerformanceContentStatus contentStatus;
+    private PerformanceContentStatus contentStatus = PerformanceContentStatus.COMING_SOON;
 }
