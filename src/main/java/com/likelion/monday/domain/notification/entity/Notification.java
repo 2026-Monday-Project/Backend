@@ -1,4 +1,4 @@
-package com.likelion.monday.domain.account.entity;
+package com.likelion.monday.domain.notification.entity;
 
 import com.likelion.monday.global.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -12,18 +12,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "account")
+@Table(name = "notification")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Account extends BaseEntity {
+public class Notification extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @Column(name = "account_id", nullable = false)
+    private Long accountId;
 
-    @Column(nullable = false, unique = true, length = 10)
-    private String nickname;
+    @Column(nullable = false, length = 100)
+    private String title;
+
+    @Column(nullable = false, length = 500)
+    private String content;
+
+    @Column(nullable = false)
+    private boolean isRead;
 }
