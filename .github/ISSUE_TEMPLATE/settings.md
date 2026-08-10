@@ -1,13 +1,14 @@
 ---
 name: "🔧 Settings"
 about: 프로젝트 설정/환경 변경
-title: "[Settings] "
+title: "🔧 Settings: "
 labels: ["🔧 Settings"]
 assignees: ''
 ---
 
-## 설정 내용
+## 🎯 목적
 
-
-## 변경 이유
-
+## 🛠 작업 항목
+- [ ]
+- [ ]
+- [ ]

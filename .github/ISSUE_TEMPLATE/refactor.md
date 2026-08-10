@@ -1,16 +1,20 @@
 ---
 name: "♻️ Refactor"
 about: 리팩토링 (기능 변경 없음)
-title: "[Refactor] "
+title: "♻️ Refactor: "
 labels: ["♻️ Refactor"]
 assignees: ''
 ---
 
-## 리팩토링 대상
+## 🎯 목적
 
+## 🛠 작업 항목
+- [ ]
+- [ ]
+- [ ]
 
-## 변경 이유
+## 💡 참고사항
+-
 
-
-## 변경 전/후 비교 (선택)
-
+## ✏️ 추후 해보고 싶은 것
+-
