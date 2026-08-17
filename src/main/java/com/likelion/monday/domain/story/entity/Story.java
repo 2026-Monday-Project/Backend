@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -73,4 +74,45 @@ public class Story extends BaseEntity {
 
     @Column(nullable = false)
     private boolean snsConsent;
+
+    @Builder
+    private Story(Long accountId, String petName, String petType, Integer petAge, String title, String content,
+                  boolean privacyConsent, boolean contentPolicyConsent, boolean publicConsent,
+                  boolean introduceConsent, boolean snsConsent) {
+        this.accountId = accountId;
+        this.petName = petName;
+        this.petType = petType;
+        this.petAge = petAge;
+        this.title = title;
+        this.content = content;
+        this.privacyConsent = privacyConsent;
+        this.contentPolicyConsent = contentPolicyConsent;
+        this.publicConsent = publicConsent;
+        this.introduceConsent = introduceConsent;
+        this.snsConsent = snsConsent;
+    }
+
+    /**
+     * 검토중 상태의 사연 내용을 수정한다.
+     * 필수 동의 항목은 제출 시점에 확정되므로 수정 대상에서 제외하고, 선택 동의만 다시 받는다.
+     */
+    public void update(String petName, String petType, Integer petAge, String title, String content,
+                       boolean introduceConsent, boolean snsConsent) {
+        this.petName = petName;
+        this.petType = petType;
+        this.petAge = petAge;
+        this.title = title;
+        this.content = content;
+        this.introduceConsent = introduceConsent;
+        this.snsConsent = snsConsent;
+    }
+
+    // 운영진 검토가 끝나 공개/비공개가 결정된 사연은 더 이상 수정할 수 없다.
+    public boolean isEditable() {
+        return this.status == StoryStatus.PENDING;
+    }
+
+    public boolean isOwnedBy(Long accountId) {
+        return this.accountId.equals(accountId);
+    }
 }
