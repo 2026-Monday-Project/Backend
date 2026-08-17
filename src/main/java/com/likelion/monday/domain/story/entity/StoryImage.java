@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -36,4 +37,16 @@ public class StoryImage extends BaseEntity {
 
     @Column(nullable = false)
     private int sortOrder;
+
+    @Builder
+    private StoryImage(Story story, String imageUrl, int sortOrder) {
+        this.story = story;
+        this.imageUrl = imageUrl;
+        this.sortOrder = sortOrder;
+    }
+
+    // 사연 수정 중 중간 사진이 삭제되면 남은 사진의 노출 순서를 앞에서부터 다시 매긴다.
+    public void updateSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
+    }
 }
