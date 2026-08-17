@@ -40,3 +40,5 @@ out/
 ### local ###
 notes/
 application-local.yml
+
+uploads/
