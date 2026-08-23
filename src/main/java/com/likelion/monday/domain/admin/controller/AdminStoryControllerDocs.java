@@ -10,10 +10,12 @@ import com.likelion.monday.domain.admin.dto.NotificationSendResDto;
 import com.likelion.monday.domain.admin.dto.StoryReviewReqDto;
 import com.likelion.monday.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "Admin", description = "관리자 사연 검수 API")
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/admin/stories")
 public interface AdminStoryControllerDocs {
 
