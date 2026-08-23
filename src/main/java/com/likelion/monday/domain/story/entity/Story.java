@@ -107,6 +107,11 @@ public class Story extends BaseEntity {
         this.snsConsent = snsConsent;
     }
 
+    // 운영진 검수 결과를 반영한다. 공개된 뒤에도 부적절하다고 판단되면 다시 비공개로 돌릴 수 있다.
+    public void updateStatus(StoryStatus status) {
+        this.status = status;
+    }
+
     // 운영진 검토가 끝나 공개/비공개가 결정된 사연은 더 이상 수정할 수 없다.
     public boolean isEditable() {
         return this.status == StoryStatus.PENDING;
