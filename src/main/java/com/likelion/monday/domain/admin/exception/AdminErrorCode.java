@@ -9,7 +9,9 @@ public enum AdminErrorCode implements ErrorCode {
 
     INVALID_REVIEW_STATUS(HttpStatus.BAD_REQUEST, "AD001", "검수 결과는 공개 또는 비공개만 지정할 수 있습니다."),
     STORY_ALREADY_IN_STATUS(HttpStatus.BAD_REQUEST, "AD002", "이미 해당 상태인 사연입니다."),
-    NOTIFICATION_TARGET_NOT_REVIEWED(HttpStatus.BAD_REQUEST, "AD003", "검수가 끝나지 않은 사연에는 알림을 보낼 수 없습니다.");
+    NOTIFICATION_TARGET_NOT_REVIEWED(HttpStatus.BAD_REQUEST, "AD003", "검수가 끝나지 않은 사연에는 알림을 보낼 수 없습니다."),
+    ADMIN_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AD004", "아이디 또는 비밀번호가 올바르지 않습니다."),
+    ADMIN_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AD005", "관리자 로그인이 필요합니다.");
 
     private final HttpStatus status;
     private final String code;
