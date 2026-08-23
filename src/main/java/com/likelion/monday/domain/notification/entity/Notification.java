@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,4 +33,13 @@ public class Notification extends BaseEntity {
 
     @Column(nullable = false)
     private boolean isRead;
+
+    // 관리자가 발송한 알림은 항상 읽지 않은 상태로 생성된다.
+    @Builder
+    private Notification(Long accountId, String title, String content) {
+        this.accountId = accountId;
+        this.title = title;
+        this.content = content;
+        this.isRead = false;
+    }
 }
