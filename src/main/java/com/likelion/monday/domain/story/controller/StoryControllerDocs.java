@@ -1,6 +1,8 @@
 package com.likelion.monday.domain.story.controller;
 
+import com.likelion.monday.domain.story.constant.StorySort;
 import com.likelion.monday.domain.story.dto.StoryCreateReqDto;
+import com.likelion.monday.domain.story.dto.StoryPageResDto;
 import com.likelion.monday.domain.story.dto.StoryUpdateReqDto;
 import com.likelion.monday.domain.story.dto.StoryWriteResDto;
 import com.likelion.monday.global.response.ApiResponse;
@@ -36,4 +38,14 @@ public interface StoryControllerDocs {
                     """
     )
     ApiResponse<StoryWriteResDto> updateStory(Long storyId, StoryUpdateReqDto request, List<MultipartFile> images);
+
+    @Operation(
+            summary = "사연 목록 조회",
+            description = """
+                    공개(PUBLIC)된 사연만 카드 형태로 페이지네이션 조회한다.
+                    정렬 기준은 LATEST(최신순, 기본값) · VIEWS(조회순) · LIKES(공감순) 중에서 선택한다.
+                    본문은 목록에 노출하지 않는다.
+                    """
+    )
+    ApiResponse<StoryPageResDto> getStories(StorySort sort, int page, int size);
 }
