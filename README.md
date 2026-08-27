@@ -103,7 +103,7 @@ Monday는 관객이 사연을 쓰고 다른 관객의 사연에 공감하며, �
 ## 🗂️ ERD
 
 <div align="center">
-  <a href="https://postimg.cc/RNjTLSgr"><img src="https://i.postimg.cc/y8NrBW9N/Monday.png" alt="Monday ERD"></a>
+  <a href="https://postimg.cc/gxNfypBw"><img src="https://i.postimg.cc/YSHMHq6x/image.png" alt="Monday ERD"></a>
 </div>
 
 ---
