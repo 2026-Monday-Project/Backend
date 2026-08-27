@@ -36,6 +36,7 @@ out/
 ### 도구 ###
 .vscode/
 .claude/
+CLAUDE.md
 
 ### local ###
 notes/
