@@ -19,7 +19,7 @@ public record StoryCreateReqDto(
 
         @Schema(description = "공개될 닉네임", example = "매기")
         @NotBlank(message = "닉네임을 입력해 주세요.")
-        @Pattern(regexp = "^[가-힣]{1,10}$", message = "닉네임은 한글 10자 이내로 입력해 주세요.")
+        @Pattern(regexp = "^[가-힣a-zA-Z0-9]{1,10}$", message = "닉네임은 한글, 영문, 숫자로 10자 이내로 입력해 주세요.")
         String nickname,
 
         @Schema(description = "검토 결과를 안내받을 이메일", example = "monday@example.com")
