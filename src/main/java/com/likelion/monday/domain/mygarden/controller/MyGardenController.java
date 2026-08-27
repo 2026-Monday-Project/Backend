@@ -1,5 +1,6 @@
 package com.likelion.monday.domain.mygarden.controller;
 
+import com.likelion.monday.domain.account.auth.LoginAccountId;
 import com.likelion.monday.domain.mygarden.dto.MyStorySummaryResDto;
 import com.likelion.monday.domain.mygarden.service.MyGardenService;
 import com.likelion.monday.domain.story.entity.StoryStatus;
@@ -18,14 +19,14 @@ public class MyGardenController implements MyGardenControllerDocs {
 
     @Override
     @GetMapping("/my-garden/stories/preview")
-    public ApiResponse<List<MyStorySummaryResDto>> getMyStoriesPreview(@RequestParam Long accountId) {
+    public ApiResponse<List<MyStorySummaryResDto>> getMyStoriesPreview(@LoginAccountId Long accountId) {
         return ApiResponse.success(myGardenService.getMyStoriesPreview(accountId));
     }
 
     @Override
     @GetMapping("/my-garden/stories")
     public ApiResponse<List<MyStorySummaryResDto>> getMyStories(
-            @RequestParam Long accountId,
+            @LoginAccountId Long accountId,
             @RequestParam(required = false) StoryStatus status) {
         return ApiResponse.success(myGardenService.getMyStories(accountId, status));
     }
