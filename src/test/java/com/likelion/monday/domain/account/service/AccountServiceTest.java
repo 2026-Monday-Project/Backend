@@ -3,6 +3,7 @@ package com.likelion.monday.domain.account.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
@@ -148,6 +150,19 @@ class AccountServiceTest {
 
             assertThat(result.nickname()).isEqualTo("두콩");
             assertThat(account.getNickname()).isEqualTo("두콩");
+        }
+
+        @Test
+        @DisplayName("중복 확인 통과 후 다른 요청이 닉네임을 선점하면 NICKNAME_ALREADY_USED로 변환한다")
+        void 동시_변경으로_제약에_걸리면_예외() {
+            given(accountRepository.findById(ACCOUNT_ID)).willReturn(Optional.of(account("매기")));
+            given(accountRepository.existsByNickname("두콩")).willReturn(false);
+            willThrow(new DataIntegrityViolationException("nickname unique 위반"))
+                    .given(accountRepository).flush();
+
+            assertThatThrownBy(() -> accountService.updateNickname(ACCOUNT_ID, "두콩"))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", AccountErrorCode.NICKNAME_ALREADY_USED);
         }
     }
 }

@@ -11,6 +11,7 @@ import com.likelion.monday.domain.account.repository.AccountRepository;
 import com.likelion.monday.global.exception.CustomException;
 import com.likelion.monday.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +65,12 @@ public class AccountService {
         }
 
         account.updateNickname(nickname);
+        try {
+            accountRepository.flush();
+        } catch (DataIntegrityViolationException e) {
+            // 중복 확인 통과 후 커밋 전 사이에 다른 요청이 같은 닉네임을 선점한 경우 unique 제약에 걸린다.
+            throw new CustomException(AccountErrorCode.NICKNAME_ALREADY_USED);
+        }
         return AccountProfileResDto.from(account);
     }
 
