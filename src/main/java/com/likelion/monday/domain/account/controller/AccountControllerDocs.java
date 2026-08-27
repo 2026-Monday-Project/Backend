@@ -18,7 +18,7 @@ public interface AccountControllerDocs {
             summary = "닉네임 중복 확인",
             description = """
                     공개 닉네임으로 사용할 수 있는지 확인한다.
-                    닉네임은 한글 10자 이내여야 하며, 이미 사용 중이면 available이 false로 내려온다.
+                    닉네임은 한글·영문·숫자 조합 10자 이내여야 하며, 이미 사용 중이면 available이 false로 내려온다.
                     """
     )
     ApiResponse<AccountAvailabilityResDto> checkNickname(NicknameCheckReqDto request);
