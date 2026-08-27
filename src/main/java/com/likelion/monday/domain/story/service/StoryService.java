@@ -53,7 +53,7 @@ public class StoryService {
      */
     @Transactional(readOnly = true)
     public StoryPageResDto getStories(StorySort sort, int page, int size) {
-        Pageable pageable = PageRequest.of(page, adjustSize(size), sort.toSort());
+        Pageable pageable = PageRequest.of(adjustPage(page), adjustSize(size), sort.toSort());
         Page<Story> stories = storyRepository.findAllByStatus(StoryStatus.PUBLIC, pageable);
 
         Map<Long, String> thumbnails = findThumbnails(stories.getContent());
@@ -252,5 +252,9 @@ public class StoryService {
 
     private int adjustSize(int size) {
         return Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
+    }
+
+    private int adjustPage(int page) {
+        return Math.max(page, 0);
     }
 }

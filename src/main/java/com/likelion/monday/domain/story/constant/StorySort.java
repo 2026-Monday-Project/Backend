@@ -20,6 +20,7 @@ public enum StorySort {
     }
 
     public Sort toSort() {
-        return Sort.by(Sort.Direction.DESC, field);
+        return Sort.by(Sort.Direction.DESC, field)
+                .and(Sort.by(Sort.Direction.DESC, "id"));
     }
 }
