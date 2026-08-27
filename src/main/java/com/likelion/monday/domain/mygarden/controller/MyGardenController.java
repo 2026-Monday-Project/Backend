@@ -18,13 +18,13 @@ public class MyGardenController implements MyGardenControllerDocs {
     private final MyGardenService myGardenService;
 
     @Override
-    @GetMapping("/my-garden/stories/preview")
+    @GetMapping("/stories/preview")
     public ApiResponse<List<MyStorySummaryResDto>> getMyStoriesPreview(@LoginAccountId Long accountId) {
         return ApiResponse.success(myGardenService.getMyStoriesPreview(accountId));
     }
 
     @Override
-    @GetMapping("/my-garden/stories")
+    @GetMapping("/stories")
     public ApiResponse<List<MyStorySummaryResDto>> getMyStories(
             @LoginAccountId Long accountId,
             @RequestParam(required = false) StoryStatus status) {
