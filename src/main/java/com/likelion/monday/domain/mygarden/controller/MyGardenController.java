@@ -21,7 +21,6 @@ public class MyGardenController implements MyGardenControllerDocs {
 
     private final MyGardenService myGardenService;
 
-
     @Override
     @GetMapping("/stories/preview")
     public ApiResponse<List<MyStorySummaryResDto>> getMyStoriesPreview(@LoginAccountId Long accountId) {
@@ -35,7 +34,6 @@ public class MyGardenController implements MyGardenControllerDocs {
             @RequestParam(required = false) StoryStatus status) {
         return ApiResponse.success(myGardenService.getMyStories(accountId, status));
     }
-
 
     @Override
     @GetMapping("/summary")

@@ -30,7 +30,6 @@ public class MyGardenService {
     private final AccountRepository accountRepository;
     private final MyGardenMapper myGardenMapper;
 
-
     public List<MyStorySummaryResDto> getMyStoriesPreview(Long accountId) {
         return storyRepository.findTop2ByAccountIdOrderByCreatedAtDesc(accountId).stream()
                 .map(myGardenMapper::toSummaryResDto)
@@ -46,7 +45,6 @@ public class MyGardenService {
                 .map(myGardenMapper::toSummaryResDto)
                 .toList();
     }
-
 
     public MyActivitySummaryResDto getActivitySummary(Long accountId) {
         long sentStoryCount = storyRepository.countByAccountId(accountId);
@@ -67,7 +65,7 @@ public class MyGardenService {
         Map<Long, String> nicknames = findLikerNicknames(likes);
 
         return likes.stream()
-                .map(like -> myGardenMapper.toReceivedLikeResDto(like, nicknames.get(like.getAccountId())))
+                .map(like -> myGardenMapper.toReceivedLikeResDto(like, findLikerNickname(like, nicknames)))
                 .toList();
     }
 
@@ -89,5 +87,12 @@ public class MyGardenService {
 
         return accountRepository.findAllById(accountIds).stream()
                 .collect(Collectors.toMap(Account::getId, Account::getNickname));
+    }
+
+    private String findLikerNickname(StoryLike like, Map<Long, String> nicknames) {
+        if (like.getAccountId() == null) {
+            return null;
+        }
+        return nicknames.get(like.getAccountId());
     }
 }
