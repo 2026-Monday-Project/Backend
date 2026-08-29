@@ -1,7 +1,5 @@
 package com.likelion.monday.domain.mygarden.service;
 
-import com.likelion.monday.domain.account.entity.Account;
-import com.likelion.monday.domain.account.repository.AccountRepository;
 import com.likelion.monday.domain.mygarden.dto.LikedStoryResDto;
 import com.likelion.monday.domain.mygarden.dto.MyActivitySummaryResDto;
 import com.likelion.monday.domain.mygarden.dto.MyStorySummaryResDto;
@@ -9,13 +7,10 @@ import com.likelion.monday.domain.mygarden.dto.ReceivedLikeResDto;
 import com.likelion.monday.domain.mygarden.dto.SentStoryResDto;
 import com.likelion.monday.domain.mygarden.mapper.MyGardenMapper;
 import com.likelion.monday.domain.story.entity.Story;
-import com.likelion.monday.domain.story.entity.StoryLike;
 import com.likelion.monday.domain.story.entity.StoryStatus;
 import com.likelion.monday.domain.story.repository.StoryLikeRepository;
 import com.likelion.monday.domain.story.repository.StoryRepository;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +22,6 @@ public class MyGardenService {
 
     private final StoryRepository storyRepository;
     private final StoryLikeRepository storyLikeRepository;
-    private final AccountRepository accountRepository;
     private final MyGardenMapper myGardenMapper;
 
     public List<MyStorySummaryResDto> getMyStoriesPreview(Long accountId) {
@@ -60,12 +54,10 @@ public class MyGardenService {
                 .toList();
     }
 
+    // 받은 공감: 내가 쓴 사연들에 달린 공감
     public List<ReceivedLikeResDto> getReceivedLikes(Long accountId) {
-        List<StoryLike> likes = storyLikeRepository.findAllByStory_AccountIdOrderByCreatedAtDesc(accountId);
-        Map<Long, String> nicknames = findLikerNicknames(likes);
-
-        return likes.stream()
-                .map(like -> myGardenMapper.toReceivedLikeResDto(like, findLikerNickname(like, nicknames)))
+        return storyLikeRepository.findAllByStory_AccountIdOrderByCreatedAtDesc(accountId).stream()
+                .map(myGardenMapper::toReceivedLikeResDto)
                 .toList();
     }
 
@@ -73,26 +65,5 @@ public class MyGardenService {
         return storyLikeRepository.findAllByAccountIdOrderByCreatedAtDesc(accountId).stream()
                 .map(myGardenMapper::toLikedStoryResDto)
                 .toList();
-    }
-
-    private Map<Long, String> findLikerNicknames(List<StoryLike> likes) {
-        List<Long> accountIds = likes.stream()
-                .map(StoryLike::getAccountId)
-                .filter(id -> id != null)
-                .distinct()
-                .toList();
-        if (accountIds.isEmpty()) {
-            return Map.of();
-        }
-
-        return accountRepository.findAllById(accountIds).stream()
-                .collect(Collectors.toMap(Account::getId, Account::getNickname));
-    }
-
-    private String findLikerNickname(StoryLike like, Map<Long, String> nicknames) {
-        if (like.getAccountId() == null) {
-            return null;
-        }
-        return nicknames.get(like.getAccountId());
     }
 }

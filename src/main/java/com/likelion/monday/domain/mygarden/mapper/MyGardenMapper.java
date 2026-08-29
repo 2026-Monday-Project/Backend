@@ -29,14 +29,11 @@ public class MyGardenMapper {
                 story.getCreatedAt());
     }
 
-    // likerNickname은 게스트 공감(guestKey)이면 null이다.
-    public ReceivedLikeResDto toReceivedLikeResDto(StoryLike like, String likerNickname) {
+    public ReceivedLikeResDto toReceivedLikeResDto(StoryLike like) {
         return new ReceivedLikeResDto(
                 like.getId(),
                 like.getStory().getId(),
-                like.getStory().getTitle(),
-                likerNickname,
-                like.getCreatedAt());
+                like.getStory().getTitle());
     }
 
     public LikedStoryResDto toLikedStoryResDto(StoryLike like) {

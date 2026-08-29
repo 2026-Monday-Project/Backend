@@ -1,7 +1,6 @@
 package com.likelion.monday.domain.mygarden.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDateTime;
 
 @Schema(description = "내 정원 - 받은 공감 목록 항목")
 public record ReceivedLikeResDto(
@@ -13,12 +12,6 @@ public record ReceivedLikeResDto(
         Long storyId,
 
         @Schema(description = "공감이 달린 사연 제목", example = "우리 집 귀염둥이에게")
-        String storyTitle,
-
-        @Schema(description = "공감을 남긴 사람 닉네임. 비로그인(게스트) 공감이면 null", example = "매기")
-        String likerNickname,
-
-        @Schema(description = "공감 일시")
-        LocalDateTime likedAt
+        String storyTitle
 ) {
 }
