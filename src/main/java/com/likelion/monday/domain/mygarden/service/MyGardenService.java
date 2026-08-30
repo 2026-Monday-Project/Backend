@@ -1,21 +1,22 @@
 package com.likelion.monday.domain.mygarden.service;
 
-import com.likelion.monday.domain.mygarden.dto.*;
+import com.likelion.monday.domain.mygarden.dto.LikedStoryResDto;
+import com.likelion.monday.domain.mygarden.dto.MyActivitySummaryResDto;
+import com.likelion.monday.domain.mygarden.dto.MyStoryDetailResDto;
+import com.likelion.monday.domain.mygarden.dto.MyStorySummaryResDto;
+import com.likelion.monday.domain.mygarden.dto.ReceivedLikeResDto;
+import com.likelion.monday.domain.mygarden.dto.SentStoryResDto;
 import com.likelion.monday.domain.mygarden.exception.MyGardenErrorCode;
 import com.likelion.monday.domain.mygarden.mapper.MyGardenMapper;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryImage;
 import com.likelion.monday.domain.story.entity.StoryStatus;
+import com.likelion.monday.domain.story.repository.StoryImageRepository;
 import com.likelion.monday.domain.story.repository.StoryLikeRepository;
 import com.likelion.monday.domain.story.repository.StoryRepository;
+import com.likelion.monday.global.exception.CustomException;
+import com.likelion.monday.global.storage.ImageStorage;
 import java.util.List;
-import com.likelion.monday.domain.mygarden.dto.MyStoryDetailResDto;
-import com.likelion.monday.domain.mygarden.exception.MyGardenErrorCode;
-import com.likelion.monday.domain.story.entity.StoryImage;
-import com.likelion.monday.domain.story.repository.StoryImageRepository;
-import com.likelion.monday.global.exception.CustomException;
-
-import com.likelion.monday.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,8 +28,9 @@ public class MyGardenService {
 
     private final StoryRepository storyRepository;
     private final StoryLikeRepository storyLikeRepository;
-    private final MyGardenMapper myGardenMapper;
     private final StoryImageRepository storyImageRepository;
+    private final MyGardenMapper myGardenMapper;
+    private final ImageStorage imageStorage;
 
     public List<MyStorySummaryResDto> getMyStoriesPreview(Long accountId) {
         return storyRepository.findTop2ByAccountIdOrderByCreatedAtDesc(accountId).stream()
@@ -86,5 +88,22 @@ public class MyGardenService {
                 .toList();
 
         return myGardenMapper.toDetailResDto(story, imageUrls);
+    }
+
+    @Transactional
+    public void deleteMyStory(Long accountId, Long storyId) {
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new CustomException(MyGardenErrorCode.STORY_NOT_FOUND));
+
+        if (!story.isOwnedBy(accountId)) {
+            throw new CustomException(MyGardenErrorCode.STORY_ACCESS_DENIED);
+        }
+
+        List<StoryImage> images = storyImageRepository.findByStory_IdOrderBySortOrderAsc(storyId);
+        storyImageRepository.deleteAll(images);
+        storyImageRepository.flush();
+        images.forEach(image -> imageStorage.delete(image.getImageUrl()));
+
+        storyRepository.delete(story);
     }
 }

@@ -7,10 +7,8 @@ import com.likelion.monday.domain.story.entity.StoryStatus;
 import com.likelion.monday.global.response.ApiResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 @RestController
 @RequiredArgsConstructor
@@ -62,5 +60,14 @@ public class MyGardenController implements MyGardenControllerDocs {
             @LoginAccountId Long accountId,
             @PathVariable("storyId") Long storyId) {
         return ApiResponse.success(myGardenService.getMyStoryDetail(accountId, storyId));
+    }
+
+    @Override
+    @DeleteMapping("/stories/{storyId}")
+    public ApiResponse<Void> deleteMyStory(
+            @LoginAccountId Long accountId,
+            @PathVariable("storyId") Long storyId) {
+        myGardenService.deleteMyStory(accountId, storyId);
+        return ApiResponse.success();
     }
 }
