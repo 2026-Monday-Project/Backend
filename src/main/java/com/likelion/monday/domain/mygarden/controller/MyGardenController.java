@@ -1,11 +1,7 @@
 package com.likelion.monday.domain.mygarden.controller;
 
 import com.likelion.monday.domain.account.auth.LoginAccountId;
-import com.likelion.monday.domain.mygarden.dto.LikedStoryResDto;
-import com.likelion.monday.domain.mygarden.dto.MyActivitySummaryResDto;
-import com.likelion.monday.domain.mygarden.dto.MyStorySummaryResDto;
-import com.likelion.monday.domain.mygarden.dto.ReceivedLikeResDto;
-import com.likelion.monday.domain.mygarden.dto.SentStoryResDto;
+import com.likelion.monday.domain.mygarden.dto.*;
 import com.likelion.monday.domain.mygarden.service.MyGardenService;
 import com.likelion.monday.domain.story.entity.StoryStatus;
 import com.likelion.monday.global.response.ApiResponse;
@@ -15,9 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.likelion.monday.domain.mygarden.dto.MyStoryDetailResDto;
-import com.likelion.monday.domain.mygarden.dto.MyStoryDetailResDto;
-import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequiredArgsConstructor
@@ -67,7 +60,7 @@ public class MyGardenController implements MyGardenControllerDocs {
     @GetMapping("/stories/{storyId}")
     public ApiResponse<MyStoryDetailResDto> getMyStoryDetail(
             @LoginAccountId Long accountId,
-            @PathVariable Long storyId) {
+            @PathVariable("storyId") Long storyId) {
         return ApiResponse.success(myGardenService.getMyStoryDetail(accountId, storyId));
     }
 }
