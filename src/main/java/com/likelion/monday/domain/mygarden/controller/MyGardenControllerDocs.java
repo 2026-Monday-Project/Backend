@@ -69,4 +69,18 @@ public interface MyGardenControllerDocs {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     ApiResponse<Void> deleteMyStory(@Parameter(hidden = true) Long accountId, Long storyId);
+
+    @Operation(
+            summary = "알림 편지함 미리보기 조회",
+            description = "마이페이지 요약용으로 최신 알림 2건만 조회한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<List<NotificationSummaryResDto>> getNotificationsPreview(@Parameter(hidden = true) Long accountId);
+
+    @Operation(
+            summary = "알림 편지함 전체 조회",
+            description = "읽음/안읽음을 함께 최신순으로 조회한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<List<NotificationSummaryResDto>> getNotifications(@Parameter(hidden = true) Long accountId);
 }

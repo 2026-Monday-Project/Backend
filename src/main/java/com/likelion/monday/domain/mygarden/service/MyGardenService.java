@@ -1,11 +1,6 @@
 package com.likelion.monday.domain.mygarden.service;
 
-import com.likelion.monday.domain.mygarden.dto.LikedStoryResDto;
-import com.likelion.monday.domain.mygarden.dto.MyActivitySummaryResDto;
-import com.likelion.monday.domain.mygarden.dto.MyStoryDetailResDto;
-import com.likelion.monday.domain.mygarden.dto.MyStorySummaryResDto;
-import com.likelion.monday.domain.mygarden.dto.ReceivedLikeResDto;
-import com.likelion.monday.domain.mygarden.dto.SentStoryResDto;
+import com.likelion.monday.domain.mygarden.dto.*;
 import com.likelion.monday.domain.mygarden.exception.MyGardenErrorCode;
 import com.likelion.monday.domain.mygarden.mapper.MyGardenMapper;
 import com.likelion.monday.domain.story.entity.Story;
@@ -20,6 +15,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.likelion.monday.domain.mygarden.dto.NotificationSummaryResDto;
+import com.likelion.monday.domain.notification.repository.NotificationRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +28,7 @@ public class MyGardenService {
     private final StoryImageRepository storyImageRepository;
     private final MyGardenMapper myGardenMapper;
     private final ImageStorage imageStorage;
+    private final NotificationRepository notificationRepository;
 
     public List<MyStorySummaryResDto> getMyStoriesPreview(Long accountId) {
         return storyRepository.findTop2ByAccountIdOrderByCreatedAtDesc(accountId).stream()
@@ -105,5 +103,17 @@ public class MyGardenService {
         images.forEach(image -> imageStorage.delete(image.getImageUrl()));
 
         storyRepository.delete(story);
+    }
+
+    public List<NotificationSummaryResDto> getNotificationsPreview(Long accountId) {
+        return notificationRepository.findTop2ByAccountIdOrderByCreatedAtDesc(accountId).stream()
+                .map(myGardenMapper::toNotificationSummaryResDto)
+                .toList();
+    }
+
+    public List<NotificationSummaryResDto> getNotifications(Long accountId) {
+        return notificationRepository.findAllByAccountIdOrderByCreatedAtDesc(accountId).stream()
+                .map(myGardenMapper::toNotificationSummaryResDto)
+                .toList();
     }
 }
