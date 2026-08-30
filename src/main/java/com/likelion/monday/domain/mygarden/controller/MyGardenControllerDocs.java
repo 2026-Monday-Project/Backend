@@ -1,6 +1,10 @@
 package com.likelion.monday.domain.mygarden.controller;
 
+import com.likelion.monday.domain.mygarden.dto.LikedStoryResDto;
+import com.likelion.monday.domain.mygarden.dto.MyActivitySummaryResDto;
 import com.likelion.monday.domain.mygarden.dto.MyStorySummaryResDto;
+import com.likelion.monday.domain.mygarden.dto.ReceivedLikeResDto;
+import com.likelion.monday.domain.mygarden.dto.SentStoryResDto;
 import com.likelion.monday.domain.story.entity.StoryStatus;
 import com.likelion.monday.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,4 +31,32 @@ public interface MyGardenControllerDocs {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     ApiResponse<List<MyStorySummaryResDto>> getMyStories(@Parameter(hidden = true) Long accountId, StoryStatus status);
+
+    @Operation(
+            summary = "내 정원 홈 - 활동 요약 조회",
+            description = "보낸 사연 수, 공감받은 수, 공감한 사연 수를 개수로만 조회한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<MyActivitySummaryResDto> getActivitySummary(@Parameter(hidden = true) Long accountId);
+
+    @Operation(
+            summary = "보낸 사연 조회",
+            description = "내가 작성한 사연 전체를 최신순으로 조회한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<List<SentStoryResDto>> getSentStories(@Parameter(hidden = true) Long accountId);
+
+    @Operation(
+            summary = "받은 공감 조회",
+            description = "내가 쓴 사연들에 달린 공감을 최신순으로 조회한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<List<ReceivedLikeResDto>> getReceivedLikes(@Parameter(hidden = true) Long accountId);
+
+    @Operation(
+            summary = "공감한 사연 조회",
+            description = "내가 다른 사연에 남긴 공감을 최신순으로 조회한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<List<LikedStoryResDto>> getLikedStories(@Parameter(hidden = true) Long accountId);
 }

@@ -12,6 +12,8 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
 
     long countByStatus(StoryStatus status);
 
+    long countByAccountId(Long accountId);
+
     Page<Story> findAllByStatus(StoryStatus status, Pageable pageable);
 
     List<Story> findTop2ByAccountIdOrderByCreatedAtDesc(Long accountId);
