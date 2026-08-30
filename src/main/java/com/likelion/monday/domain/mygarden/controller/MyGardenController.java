@@ -12,8 +12,12 @@ import com.likelion.monday.global.response.ApiResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.likelion.monday.domain.mygarden.dto.MyStoryDetailResDto;
+import com.likelion.monday.domain.mygarden.dto.MyStoryDetailResDto;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequiredArgsConstructor
@@ -57,5 +61,13 @@ public class MyGardenController implements MyGardenControllerDocs {
     @GetMapping("/liked-stories")
     public ApiResponse<List<LikedStoryResDto>> getLikedStories(@LoginAccountId Long accountId) {
         return ApiResponse.success(myGardenService.getLikedStories(accountId));
+    }
+
+    @Override
+    @GetMapping("/stories/{storyId}")
+    public ApiResponse<MyStoryDetailResDto> getMyStoryDetail(
+            @LoginAccountId Long accountId,
+            @PathVariable Long storyId) {
+        return ApiResponse.success(myGardenService.getMyStoryDetail(accountId, storyId));
     }
 }
