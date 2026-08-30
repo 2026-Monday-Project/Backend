@@ -1,10 +1,6 @@
 package com.likelion.monday.domain.mygarden.controller;
 
-import com.likelion.monday.domain.mygarden.dto.LikedStoryResDto;
-import com.likelion.monday.domain.mygarden.dto.MyActivitySummaryResDto;
-import com.likelion.monday.domain.mygarden.dto.MyStorySummaryResDto;
-import com.likelion.monday.domain.mygarden.dto.ReceivedLikeResDto;
-import com.likelion.monday.domain.mygarden.dto.SentStoryResDto;
+import com.likelion.monday.domain.mygarden.dto.*;
 import com.likelion.monday.domain.story.entity.StoryStatus;
 import com.likelion.monday.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -59,4 +55,11 @@ public interface MyGardenControllerDocs {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     ApiResponse<List<LikedStoryResDto>> getLikedStories(@Parameter(hidden = true) Long accountId);
+
+    @Operation(
+            summary = "내 사연 상세 조회",
+            description = "공개 상태와 선택 동의(소개·낭독, SNS 활용) 현황을 함께 조회한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<MyStoryDetailResDto> getMyStoryDetail(@Parameter(hidden = true) Long accountId, Long storyId);
 }
