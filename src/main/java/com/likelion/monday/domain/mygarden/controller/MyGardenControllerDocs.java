@@ -62,4 +62,11 @@ public interface MyGardenControllerDocs {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     ApiResponse<MyStoryDetailResDto> getMyStoryDetail(@Parameter(hidden = true) Long accountId, Long storyId);
+
+    @Operation(
+            summary = "내 사연 삭제",
+            description = "본인이 작성한 사연만 삭제할 수 있다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<Void> deleteMyStory(@Parameter(hidden = true) Long accountId, Long storyId);
 }
