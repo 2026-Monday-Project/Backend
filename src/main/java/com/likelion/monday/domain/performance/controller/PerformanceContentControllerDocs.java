@@ -3,6 +3,9 @@ package com.likelion.monday.domain.performance.controller;
 import com.likelion.monday.domain.performance.dto.PerformanceContentResDto;
 import com.likelion.monday.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -18,5 +21,12 @@ public interface PerformanceContentControllerDocs {
                     등록된 콘텐츠가 없으면 404로 처리한다.
                     """
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "등록된 먼데이 원송 콘텐츠가 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class)))
+    })
     ApiResponse<PerformanceContentResDto> getPerformanceContent();
 }

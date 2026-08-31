@@ -22,7 +22,7 @@ public class PerformanceContentService {
      * 저장된 contentStatus를 그대로 믿지 않고, 현재 시각과 contentOpenAt을 비교해 공개 상태를 다시 계산한다.
      */
     public PerformanceContentResDto getPerformanceContent() {
-        PerformanceContent content = performanceContentRepository.findTopByOrderByIdDesc()
+        PerformanceContent content = performanceContentRepository.findTopByOrderByCreatedAtDesc()
                 .orElseThrow(() -> new CustomException(PerformanceErrorCode.PERFORMANCE_CONTENT_NOT_FOUND));
 
         PerformanceContentStatus status = LocalDateTime.now().isBefore(content.getContentOpenAt())

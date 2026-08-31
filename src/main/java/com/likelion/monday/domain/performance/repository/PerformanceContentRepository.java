@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PerformanceContentRepository extends JpaRepository<PerformanceContent, Long> {
 
-    Optional<PerformanceContent> findTopByOrderByIdDesc();
+    Optional<PerformanceContent> findTopByOrderByCreatedAtDesc();
 }
