@@ -5,6 +5,7 @@ import com.likelion.monday.domain.notification.entity.Notification;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryLike;
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,14 +18,6 @@ public class MyGardenMapper {
                 story.getPetName(),
                 story.getStatus(),
                 story.getLikeCount(),
-                story.getCreatedAt());
-    }
-
-    public SentStoryResDto toSentStoryResDto(Story story) {
-        return new SentStoryResDto(
-                story.getId(),
-                story.getTitle(),
-                story.getStatus(),
                 story.getCreatedAt());
     }
 
@@ -75,5 +68,21 @@ public class MyGardenMapper {
                 notification.getContent(),
                 notification.isRead(),
                 notification.getCreatedAt());
+    }
+
+    public PageResDto<MyStorySummaryResDto> toMyStoryPageResDto(Page<Story> page) {
+        return PageResDto.from(page.map(this::toSummaryResDto));
+    }
+
+    public PageResDto<ReceivedLikeResDto> toReceivedLikePageResDto(Page<StoryLike> page) {
+        return PageResDto.from(page.map(this::toReceivedLikeResDto));
+    }
+
+    public PageResDto<LikedStoryResDto> toLikedStoryPageResDto(Page<StoryLike> page) {
+        return PageResDto.from(page.map(this::toLikedStoryResDto));
+    }
+
+    public PageResDto<NotificationSummaryResDto> toNotificationPageResDto(Page<Notification> page) {
+        return PageResDto.from(page.map(this::toNotificationSummaryResDto));
     }
 }

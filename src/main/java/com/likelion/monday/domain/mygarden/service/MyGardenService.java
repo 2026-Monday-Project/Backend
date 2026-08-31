@@ -4,6 +4,7 @@ import com.likelion.monday.domain.mygarden.dto.*;
 import com.likelion.monday.domain.mygarden.exception.MyGardenErrorCode;
 import com.likelion.monday.domain.mygarden.mapper.MyGardenMapper;
 import com.likelion.monday.domain.notification.entity.Notification;
+import com.likelion.monday.domain.notification.repository.NotificationRepository;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryImage;
 import com.likelion.monday.domain.story.entity.StoryStatus;
@@ -14,17 +15,20 @@ import com.likelion.monday.global.exception.CustomException;
 import com.likelion.monday.global.storage.ImageStorage;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.likelion.monday.domain.mygarden.dto.NotificationSummaryResDto;
-import com.likelion.monday.domain.notification.repository.NotificationRepository;
-import com.likelion.monday.domain.mygarden.dto.NotificationDetailResDto;
-import com.likelion.monday.domain.notification.entity.Notification;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MyGardenService {
+
+    private static final int MIN_PAGE_SIZE = 1;
+    private static final int MAX_PAGE_SIZE = 100;
 
     private final StoryRepository storyRepository;
     private final StoryLikeRepository storyLikeRepository;
@@ -39,14 +43,14 @@ public class MyGardenService {
                 .toList();
     }
 
-    public List<MyStorySummaryResDto> getMyStories(Long accountId, StoryStatus status) {
-        List<Story> stories = status == null
-                ? storyRepository.findAllByAccountIdOrderByCreatedAtDesc(accountId)
-                : storyRepository.findAllByAccountIdAndStatusOrderByCreatedAtDesc(accountId, status);
+    // 내 사연 전체/필터 조회. status가 null이면 전체로 간주한다. 보낸 사연 목록으로도 함께 사용한다.
+    public PageResDto<MyStorySummaryResDto> getMyStories(Long accountId, StoryStatus status, int page, int size) {
+        Pageable pageable = pageable(page, size);
+        Page<Story> stories = status == null
+                ? storyRepository.findAllByAccountId(accountId, pageable)
+                : storyRepository.findAllByAccountIdAndStatus(accountId, status, pageable);
 
-        return stories.stream()
-                .map(myGardenMapper::toSummaryResDto)
-                .toList();
+        return myGardenMapper.toMyStoryPageResDto(stories);
     }
 
     public MyActivitySummaryResDto getActivitySummary(Long accountId) {
@@ -57,23 +61,19 @@ public class MyGardenService {
         return new MyActivitySummaryResDto(sentStoryCount, receivedLikeCount, likedStoryCount);
     }
 
-    public List<SentStoryResDto> getSentStories(Long accountId) {
-        return storyRepository.findAllByAccountIdOrderByCreatedAtDesc(accountId).stream()
-                .map(myGardenMapper::toSentStoryResDto)
-                .toList();
-    }
-
     // 받은 공감: 내가 쓴 사연들에 달린 공감
-    public List<ReceivedLikeResDto> getReceivedLikes(Long accountId) {
-        return storyLikeRepository.findAllByStory_AccountIdOrderByCreatedAtDesc(accountId).stream()
-                .map(myGardenMapper::toReceivedLikeResDto)
-                .toList();
+    public PageResDto<ReceivedLikeResDto> getReceivedLikes(Long accountId, int page, int size) {
+        Page<com.likelion.monday.domain.story.entity.StoryLike> likes =
+                storyLikeRepository.findAllByStory_AccountId(accountId, pageable(page, size));
+
+        return myGardenMapper.toReceivedLikePageResDto(likes);
     }
 
-    public List<LikedStoryResDto> getLikedStories(Long accountId) {
-        return storyLikeRepository.findAllByAccountIdOrderByCreatedAtDesc(accountId).stream()
-                .map(myGardenMapper::toLikedStoryResDto)
-                .toList();
+    public PageResDto<LikedStoryResDto> getLikedStories(Long accountId, int page, int size) {
+        Page<com.likelion.monday.domain.story.entity.StoryLike> likes =
+                storyLikeRepository.findAllByAccountId(accountId, pageable(page, size));
+
+        return myGardenMapper.toLikedStoryPageResDto(likes);
     }
 
     public MyStoryDetailResDto getMyStoryDetail(Long accountId, Long storyId) {
@@ -114,10 +114,10 @@ public class MyGardenService {
                 .toList();
     }
 
-    public List<NotificationSummaryResDto> getNotifications(Long accountId) {
-        return notificationRepository.findAllByAccountIdOrderByCreatedAtDescIdDesc(accountId).stream()
-                .map(myGardenMapper::toNotificationSummaryResDto)
-                .toList();
+    public PageResDto<NotificationSummaryResDto> getNotifications(Long accountId, int page, int size) {
+        Page<Notification> notifications = notificationRepository.findAllByAccountId(accountId, pageable(page, size));
+
+        return myGardenMapper.toNotificationPageResDto(notifications);
     }
 
     @Transactional
@@ -132,5 +132,14 @@ public class MyGardenService {
         notification.markAsRead();
 
         return myGardenMapper.toNotificationDetailResDto(notification);
+    }
+
+    // 목록 API 전반에서 쓰는 페이지 요청 생성. 최신순 정렬에 id를 보조 기준으로 더해 순서를 보장한다.
+    private Pageable pageable(int page, int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
+
+        return PageRequest.of(safePage, safeSize, sort);
     }
 }

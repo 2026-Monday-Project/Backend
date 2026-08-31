@@ -20,9 +20,9 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
 
     List<Story> findTop2ByAccountIdOrderByCreatedAtDesc(Long accountId);
 
-    List<Story> findAllByAccountIdOrderByCreatedAtDesc(Long accountId);
+    Page<Story> findAllByAccountId(Long accountId, Pageable pageable);
 
-    List<Story> findAllByAccountIdAndStatusOrderByCreatedAtDesc(Long accountId, StoryStatus status);
+    Page<Story> findAllByAccountIdAndStatus(Long accountId, StoryStatus status, Pageable pageable);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE Story s SET s.viewCount = s.viewCount + 1 WHERE s.id = :storyId")
