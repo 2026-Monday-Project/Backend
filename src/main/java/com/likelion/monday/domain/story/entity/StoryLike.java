@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -45,4 +46,11 @@ public class StoryLike extends BaseEntity {
 
     @Column(name = "guest_key", length = 100)
     private String guestKey;
+
+    @Builder
+    private StoryLike(Story story, Long accountId, String guestKey) {
+        this.story = story;
+        this.accountId = accountId;
+        this.guestKey = guestKey;
+    }
 }
