@@ -88,7 +88,8 @@ public class StoryService {
                 .filter(s -> s.getStatus() == StoryStatus.PUBLIC)
                 .orElseThrow(() -> new CustomException(StoryErrorCode.STORY_NOT_FOUND));
 
-        recordView(story, guestKey);
+        boolean viewed = recordView(story, guestKey);
+        int viewCount = viewed ? story.getViewCount() + 1 : story.getViewCount();
 
         Account account = accountRepository.findById(story.getAccountId())
                 .orElseThrow(() -> new CustomException(AccountErrorCode.ACCOUNT_NOT_FOUND));
@@ -96,7 +97,7 @@ public class StoryService {
                 .map(StoryImage::getImageUrl)
                 .toList();
 
-        return storyMapper.toDetailResDto(story, account.getNickname(), imageUrls);
+        return storyMapper.toDetailResDto(story, viewCount, account.getNickname(), imageUrls);
     }
 
     /**
@@ -251,9 +252,9 @@ public class StoryService {
      * 조회 기록이 없을 때만 저장하고 조회수를 올린다.
      * exists 확인과 insert 사이에 동시 요청이 들어올 수 있으므로, 유니크 제약 위반도 함께 잡아서 무시한다.
      */
-    private void recordView(Story story, String guestKey) {
+    private boolean recordView(Story story, String guestKey) {
         if (storyViewRepository.existsByStory_IdAndGuestKey(story.getId(), guestKey)) {
-            return;
+            return false;
         }
 
         try {
@@ -261,9 +262,11 @@ public class StoryService {
                     .story(story)
                     .guestKey(guestKey)
                     .build());
-            story.increaseViewCount();
+            storyRepository.increaseViewCount(story.getId());
+            return true;
         } catch (DataIntegrityViolationException e) {
             // 동시 요청으로 이미 기록된 경우, 조회수는 올리지 않고 그대로 둔다.
+            return false;
         }
     }
 

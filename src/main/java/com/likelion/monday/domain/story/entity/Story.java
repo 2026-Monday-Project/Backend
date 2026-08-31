@@ -121,7 +121,4 @@ public class Story extends BaseEntity {
         return this.accountId.equals(accountId);
     }
 
-    public void increaseViewCount() {
-        this.viewCount++;
-    }
 }
