@@ -16,7 +16,7 @@ public record StoryWriteResDto(
         @Schema(description = "사연 공개 상태 (제출 직후에는 PENDING)", example = "PENDING")
         StoryStatus status,
 
-        @Schema(description = "노출 순서대로 정렬된 사진 URL 목록")
-        List<String> imageUrls
+        @Schema(description = "노출 순서대로 정렬된 첨부 사진 목록. 수정 요청의 keepImageIds에 여기 imageId를 사용한다.")
+        List<StoryImageResDto> images
 ) {
 }
