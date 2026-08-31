@@ -7,6 +7,8 @@ import com.likelion.monday.domain.story.dto.StoryUpdateReqDto;
 import com.likelion.monday.domain.story.dto.StoryWriteResDto;
 import com.likelion.monday.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,10 +36,12 @@ public interface StoryControllerDocs {
                     검토중(PENDING) 상태인 본인 사연만 수정할 수 있다.
                     남길 기존 사진은 keepImageIds로 지정하고, 새로 추가할 사진만 images 파트로 보낸다.
                     keepImageIds에 없는 기존 사진은 삭제되며, 남긴 사진 뒤로 새 사진이 이어 붙는다.
-                    본인 확인은 로그인 기능이 붙기 전까지 request의 email로 처리한다.
-                    """
+                    로그인이 필요하며, 토큰의 계정과 사연 작성자가 다르면 수정할 수 없다.
+                    """,
+            security = @SecurityRequirement(name = "bearerAuth")
     )
-    ApiResponse<StoryWriteResDto> updateStory(Long storyId, StoryUpdateReqDto request, List<MultipartFile> images);
+    ApiResponse<StoryWriteResDto> updateStory(@Parameter(hidden = true) Long accountId, Long storyId,
+                                              StoryUpdateReqDto request, List<MultipartFile> images);
 
     @Operation(
             summary = "사연 목록 조회",
