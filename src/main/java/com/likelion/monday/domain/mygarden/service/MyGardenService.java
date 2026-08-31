@@ -3,6 +3,7 @@ package com.likelion.monday.domain.mygarden.service;
 import com.likelion.monday.domain.mygarden.dto.*;
 import com.likelion.monday.domain.mygarden.exception.MyGardenErrorCode;
 import com.likelion.monday.domain.mygarden.mapper.MyGardenMapper;
+import com.likelion.monday.domain.notification.entity.Notification;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryImage;
 import com.likelion.monday.domain.story.entity.StoryStatus;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.likelion.monday.domain.mygarden.dto.NotificationSummaryResDto;
 import com.likelion.monday.domain.notification.repository.NotificationRepository;
+import com.likelion.monday.domain.mygarden.dto.NotificationDetailResDto;
+import com.likelion.monday.domain.notification.entity.Notification;
 
 @Service
 @RequiredArgsConstructor
@@ -115,5 +118,19 @@ public class MyGardenService {
         return notificationRepository.findAllByAccountIdOrderByCreatedAtDescIdDesc(accountId).stream()
                 .map(myGardenMapper::toNotificationSummaryResDto)
                 .toList();
+    }
+
+    @Transactional
+    public NotificationDetailResDto getNotificationDetail(Long accountId, Long notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new CustomException(MyGardenErrorCode.NOTIFICATION_NOT_FOUND));
+
+        if (!notification.getAccountId().equals(accountId)) {
+            throw new CustomException(MyGardenErrorCode.NOTIFICATION_ACCESS_DENIED);
+        }
+
+        notification.markAsRead();
+
+        return myGardenMapper.toNotificationDetailResDto(notification);
     }
 }

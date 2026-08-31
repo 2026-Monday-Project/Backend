@@ -81,4 +81,12 @@ public class MyGardenController implements MyGardenControllerDocs {
     public ApiResponse<List<NotificationSummaryResDto>> getNotifications(@LoginAccountId Long accountId) {
         return ApiResponse.success(myGardenService.getNotifications(accountId));
     }
+
+    @Override
+    @GetMapping("/notifications/{notificationId}")
+    public ApiResponse<NotificationDetailResDto> getNotificationDetail(
+            @LoginAccountId Long accountId,
+            @PathVariable("notificationId") Long notificationId) {
+        return ApiResponse.success(myGardenService.getNotificationDetail(accountId, notificationId));
+    }
 }

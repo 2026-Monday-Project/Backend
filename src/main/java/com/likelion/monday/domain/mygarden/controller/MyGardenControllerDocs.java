@@ -83,4 +83,11 @@ public interface MyGardenControllerDocs {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     ApiResponse<List<NotificationSummaryResDto>> getNotifications(@Parameter(hidden = true) Long accountId);
+
+    @Operation(
+            summary = "알림 상세 조회",
+            description = "조회 시점에 해당 알림을 읽음 처리한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<NotificationDetailResDto> getNotificationDetail(@Parameter(hidden = true) Long accountId, Long notificationId);
 }

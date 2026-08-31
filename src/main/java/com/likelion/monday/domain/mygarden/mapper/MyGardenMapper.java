@@ -1,14 +1,11 @@
 package com.likelion.monday.domain.mygarden.mapper;
 
 import com.likelion.monday.domain.mygarden.dto.*;
+import com.likelion.monday.domain.notification.entity.Notification;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryLike;
 import java.util.List;
 import org.springframework.stereotype.Component;
-import com.likelion.monday.domain.mygarden.dto.NotificationSummaryResDto;
-import com.likelion.monday.domain.notification.entity.Notification;
-import com.likelion.monday.domain.mygarden.dto.NotificationSummaryResDto;
-import com.likelion.monday.domain.notification.repository.NotificationRepository;
 
 @Component
 public class MyGardenMapper {
@@ -71,5 +68,12 @@ public class MyGardenMapper {
                 notification.getCreatedAt());
     }
 
-
+    public NotificationDetailResDto toNotificationDetailResDto(Notification notification) {
+        return new NotificationDetailResDto(
+                notification.getId(),
+                notification.getTitle(),
+                notification.getContent(),
+                notification.isRead(),
+                notification.getCreatedAt());
+    }
 }
