@@ -76,13 +76,11 @@ public class MyGardenService {
         return myGardenMapper.toLikedStoryPageResDto(likes);
     }
 
+    // 존재하지 않는 사연과 남의 사연을 같은 응답(404)으로 처리해, 사연 존재 여부가 외부로 새어나가지 않게 한다.
     public MyStoryDetailResDto getMyStoryDetail(Long accountId, Long storyId) {
         Story story = storyRepository.findById(storyId)
+                .filter(found -> found.isOwnedBy(accountId))
                 .orElseThrow(() -> new CustomException(MyGardenErrorCode.STORY_NOT_FOUND));
-
-        if (!story.isOwnedBy(accountId)) {
-            throw new CustomException(MyGardenErrorCode.STORY_ACCESS_DENIED);
-        }
 
         List<String> imageUrls = storyImageRepository.findByStory_IdOrderBySortOrderAsc(storyId).stream()
                 .map(StoryImage::getImageUrl)
@@ -94,11 +92,8 @@ public class MyGardenService {
     @Transactional
     public void deleteMyStory(Long accountId, Long storyId) {
         Story story = storyRepository.findById(storyId)
+                .filter(found -> found.isOwnedBy(accountId))
                 .orElseThrow(() -> new CustomException(MyGardenErrorCode.STORY_NOT_FOUND));
-
-        if (!story.isOwnedBy(accountId)) {
-            throw new CustomException(MyGardenErrorCode.STORY_ACCESS_DENIED);
-        }
 
         List<StoryImage> images = storyImageRepository.findByStory_IdOrderBySortOrderAsc(storyId);
         storyImageRepository.deleteAll(images);
@@ -120,14 +115,12 @@ public class MyGardenService {
         return myGardenMapper.toNotificationPageResDto(notifications);
     }
 
+    // 존재하지 않는 알림과 남의 알림을 같은 응답(404)으로 처리해, 알림 존재 여부가 외부로 새어나가지 않게 한다.
     @Transactional
     public NotificationDetailResDto getNotificationDetail(Long accountId, Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
+                .filter(found -> found.getAccountId().equals(accountId))
                 .orElseThrow(() -> new CustomException(MyGardenErrorCode.NOTIFICATION_NOT_FOUND));
-
-        if (!notification.getAccountId().equals(accountId)) {
-            throw new CustomException(MyGardenErrorCode.NOTIFICATION_ACCESS_DENIED);
-        }
 
         notification.markAsRead();
 
