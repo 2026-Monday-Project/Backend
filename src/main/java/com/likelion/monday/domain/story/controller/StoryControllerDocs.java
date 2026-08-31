@@ -57,6 +57,30 @@ public interface StoryControllerDocs {
     ApiResponse<StoryPageResDto> getStories(StorySort sort, int page, int size);
 
     @Operation(
+            summary = "사연 공감 등록",
+            description = """
+                    사연에 공감을 등록한다. 로그인 상태면 계정 기준으로, 비로그인이면 guest_key 쿠키 기준으로 중복 공감을 방지한다.
+                    이미 공감한 상태에서 다시 요청해도 에러 없이 그대로 처리된다.
+                    검토중이거나 비공개인 사연은 404로 처리한다.
+                    로그인은 선택 사항이며, 토큰이 있으면 계정 기준으로 처리된다.
+                    """,
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<Void> likeStory(@Parameter(hidden = true) Long accountId, Long storyId,
+                                HttpServletRequest request, HttpServletResponse response);
+
+    @Operation(
+            summary = "사연 공감 취소",
+            description = """
+                    등록했던 공감을 취소한다. 공감한 기록이 없는 상태에서 요청해도 에러 없이 그대로 처리된다.
+                    로그인은 선택 사항이며, 토큰이 있으면 계정 기준으로 처리된다.
+                    """,
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<Void> unlikeStory(@Parameter(hidden = true) Long accountId, Long storyId,
+                                  HttpServletRequest request, HttpServletResponse response);
+
+    @Operation(
             summary = "사연 상세 조회",
             description = """
                     공개(PUBLIC)된 사연 하나를 상세로 조회한다. 본문과 전체 사진 목록을 포함한다.

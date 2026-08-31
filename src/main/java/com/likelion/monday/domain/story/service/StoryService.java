@@ -12,11 +12,13 @@ import com.likelion.monday.domain.story.dto.StoryUpdateReqDto;
 import com.likelion.monday.domain.story.dto.StoryWriteResDto;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryImage;
+import com.likelion.monday.domain.story.entity.StoryLike;
 import com.likelion.monday.domain.story.entity.StoryStatus;
 import com.likelion.monday.domain.story.entity.StoryView;
 import com.likelion.monday.domain.story.exception.StoryErrorCode;
 import com.likelion.monday.domain.story.mapper.StoryMapper;
 import com.likelion.monday.domain.story.repository.StoryImageRepository;
+import com.likelion.monday.domain.story.repository.StoryLikeRepository;
 import com.likelion.monday.domain.story.repository.StoryRepository;
 import com.likelion.monday.domain.story.repository.StoryViewRepository;
 import com.likelion.monday.global.exception.CustomException;
@@ -48,6 +50,7 @@ public class StoryService {
     private final StoryRepository storyRepository;
     private final StoryImageRepository storyImageRepository;
     private final StoryViewRepository storyViewRepository;
+    private final StoryLikeRepository storyLikeRepository;
     private final AccountRepository accountRepository;
     private final StoryMapper storyMapper;
     private final ImageStorage imageStorage;
@@ -166,6 +169,41 @@ public class StoryService {
         return storyMapper.toWriteResDto(story, account.getNickname(), imageUrls);
     }
 
+    /**
+     * 사연에 공감을 등록한다.
+     * 로그인 상태면 accountId로, 비로그인이면 guestKey로 식별해 중복 공감을 막는다.
+     * 이미 공감한 상태로 다시 요청이 와도 에러 없이 무시한다(멱등).
+     */
+    public void likeStory(Long storyId, Long accountId, String guestKey) {
+        Story story = storyRepository.findById(storyId)
+                .filter(s -> s.getStatus() == StoryStatus.PUBLIC)
+                .orElseThrow(() -> new CustomException(StoryErrorCode.STORY_NOT_FOUND));
+
+        if (accountId != null) {
+            likeByAccount(story, accountId);
+        } else {
+            likeByGuest(story, guestKey);
+        }
+    }
+
+    /**
+     * 사연 공감을 취소한다.
+     * 공감한 기록이 없는 상태로 요청이 와도 에러 없이 무시한다(멱등).
+     */
+    public void unlikeStory(Long storyId, Long accountId, String guestKey) {
+        if (!storyRepository.existsById(storyId)) {
+            throw new CustomException(StoryErrorCode.STORY_NOT_FOUND);
+        }
+
+        long deletedCount = accountId != null
+                ? storyLikeRepository.deleteByStory_IdAndAccountId(storyId, accountId)
+                : storyLikeRepository.deleteByStory_IdAndGuestKey(storyId, guestKey);
+
+        if (deletedCount > 0) {
+            storyRepository.decreaseLikeCount(storyId);
+        }
+    }
+
     private Account findOrCreateAccount(String email, String nickname) {
         return accountRepository.findByEmail(email)
                 .map(account -> updateNicknameIfChanged(account, nickname))
@@ -269,6 +307,38 @@ public class StoryService {
         } catch (DataIntegrityViolationException e) {
             // 동시 요청으로 이미 기록된 경우, 조회수는 올리지 않고 그대로 둔다.
             return false;
+        }
+    }
+
+    private void likeByAccount(Story story, Long accountId) {
+        if (storyLikeRepository.existsByStory_IdAndAccountId(story.getId(), accountId)) {
+            return;
+        }
+
+        try {
+            storyLikeRepository.save(StoryLike.builder()
+                    .story(story)
+                    .accountId(accountId)
+                    .build());
+            storyRepository.increaseLikeCount(story.getId());
+        } catch (DataIntegrityViolationException e) {
+            // 동시 요청으로 이미 등록된 경우, 무시한다.
+        }
+    }
+
+    private void likeByGuest(Story story, String guestKey) {
+        if (storyLikeRepository.existsByStory_IdAndGuestKey(story.getId(), guestKey)) {
+            return;
+        }
+
+        try {
+            storyLikeRepository.save(StoryLike.builder()
+                    .story(story)
+                    .guestKey(guestKey)
+                    .build());
+            storyRepository.increaseLikeCount(story.getId());
+        } catch (DataIntegrityViolationException e) {
+            // 동시 요청으로 이미 등록된 경우, 무시한다.
         }
     }
 

@@ -27,4 +27,12 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE Story s SET s.viewCount = s.viewCount + 1 WHERE s.id = :storyId")
     void increaseViewCount(@Param("storyId") Long storyId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("UPDATE Story s SET s.likeCount = s.likeCount + 1 WHERE s.id = :storyId")
+    void increaseLikeCount(@Param("storyId") Long storyId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("UPDATE Story s SET s.likeCount = s.likeCount - 1 WHERE s.id = :storyId AND s.likeCount > 0")
+    void decreaseLikeCount(@Param("storyId") Long storyId);
 }

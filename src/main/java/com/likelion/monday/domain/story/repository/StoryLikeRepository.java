@@ -13,4 +13,12 @@ public interface StoryLikeRepository extends JpaRepository<StoryLike, Long> {
     List<StoryLike> findAllByStory_AccountIdOrderByCreatedAtDesc(Long accountId);
 
     List<StoryLike> findAllByAccountIdOrderByCreatedAtDesc(Long accountId);
+
+    boolean existsByStory_IdAndAccountId(Long storyId, Long accountId);
+
+    boolean existsByStory_IdAndGuestKey(Long storyId, String guestKey);
+
+    long deleteByStory_IdAndAccountId(Long storyId, Long accountId);
+
+    long deleteByStory_IdAndGuestKey(Long storyId, String guestKey);
 }

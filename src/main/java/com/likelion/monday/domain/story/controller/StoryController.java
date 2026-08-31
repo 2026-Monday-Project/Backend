@@ -1,6 +1,7 @@
 package com.likelion.monday.domain.story.controller;
 
 import com.likelion.monday.domain.account.auth.LoginAccountId;
+import com.likelion.monday.domain.account.auth.OptionalLoginAccountId;
 import com.likelion.monday.domain.story.constant.StorySort;
 import com.likelion.monday.domain.story.dto.StoryCreateReqDto;
 import com.likelion.monday.domain.story.dto.StoryDetailResDto;
@@ -17,6 +18,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,6 +53,30 @@ public class StoryController implements StoryControllerDocs {
             HttpServletResponse response) {
         String guestKey = guestKeyProvider.resolve(request, response);
         return ApiResponse.success(storyService.getStory(storyId, guestKey));
+    }
+
+    @Override
+    @PostMapping("/{storyId}/likes")
+    public ApiResponse<Void> likeStory(
+            @OptionalLoginAccountId Long accountId,
+            @PathVariable Long storyId,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        String guestKey = guestKeyProvider.resolve(request, response);
+        storyService.likeStory(storyId, accountId, guestKey);
+        return ApiResponse.success();
+    }
+
+    @Override
+    @DeleteMapping("/{storyId}/likes")
+    public ApiResponse<Void> unlikeStory(
+            @OptionalLoginAccountId Long accountId,
+            @PathVariable Long storyId,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        String guestKey = guestKeyProvider.resolve(request, response);
+        storyService.unlikeStory(storyId, accountId, guestKey);
+        return ApiResponse.success();
     }
 
     @Override
