@@ -1,7 +1,6 @@
 package com.likelion.monday.domain.story.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -11,20 +10,12 @@ import java.util.List;
 
 /**
  * 사연 수정 요청.
+ * 작성자 확인은 로그인 토큰에서 꺼낸 계정으로 처리하므로 본문에 식별 정보를 담지 않는다.
  * 기존 사진 중 남길 것을 keepImageIds로 지정하고, 새로 추가할 사진만 multipart의 images 파트로 보낸다.
  * keepImageIds에 없는 기존 사진은 삭제되며, 빈 배열을 보내면 기존 사진이 모두 지워진다.
  */
 @Schema(description = "사연 수정 요청")
 public record StoryUpdateReqDto(
-
-        /*
-         * 로그인 기능이 붙기 전까지 사용하는 임시 소유자 확인 수단이다.
-         * 인증이 도입되면 이 필드를 지우고 인증 정보에서 계정을 꺼내도록 바꾼다.
-         */
-        @Schema(description = "사연 작성 시 입력한 이메일 (본인 확인용)", example = "monday@example.com")
-        @NotBlank(message = "이메일을 입력해 주세요.")
-        @Email(message = "이메일 형식이 올바르지 않습니다.")
-        String email,
 
         @Schema(description = "반려동물 이름", example = "머고")
         @NotBlank(message = "반려동물 이름을 입력해 주세요.")
