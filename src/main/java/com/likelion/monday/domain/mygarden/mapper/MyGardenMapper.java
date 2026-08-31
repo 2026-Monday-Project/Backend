@@ -1,13 +1,11 @@
 package com.likelion.monday.domain.mygarden.mapper;
 
-import com.likelion.monday.domain.mygarden.dto.LikedStoryResDto;
-import com.likelion.monday.domain.mygarden.dto.MyStoryDetailResDto;
-import com.likelion.monday.domain.mygarden.dto.MyStorySummaryResDto;
-import com.likelion.monday.domain.mygarden.dto.ReceivedLikeResDto;
-import com.likelion.monday.domain.mygarden.dto.SentStoryResDto;
+import com.likelion.monday.domain.mygarden.dto.*;
+import com.likelion.monday.domain.notification.entity.Notification;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryLike;
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,14 +18,6 @@ public class MyGardenMapper {
                 story.getPetName(),
                 story.getStatus(),
                 story.getLikeCount(),
-                story.getCreatedAt());
-    }
-
-    public SentStoryResDto toSentStoryResDto(Story story) {
-        return new SentStoryResDto(
-                story.getId(),
-                story.getTitle(),
-                story.getStatus(),
                 story.getCreatedAt());
     }
 
@@ -61,5 +51,38 @@ public class MyGardenMapper {
                 imageUrls,
                 story.getCreatedAt(),
                 story.getUpdatedAt());
+    }
+
+    public NotificationSummaryResDto toNotificationSummaryResDto(Notification notification) {
+        return new NotificationSummaryResDto(
+                notification.getId(),
+                notification.getTitle(),
+                notification.isRead(),
+                notification.getCreatedAt());
+    }
+
+    public NotificationDetailResDto toNotificationDetailResDto(Notification notification) {
+        return new NotificationDetailResDto(
+                notification.getId(),
+                notification.getTitle(),
+                notification.getContent(),
+                notification.isRead(),
+                notification.getCreatedAt());
+    }
+
+    public PageResDto<MyStorySummaryResDto> toMyStoryPageResDto(Page<Story> page) {
+        return PageResDto.from(page.map(this::toSummaryResDto));
+    }
+
+    public PageResDto<ReceivedLikeResDto> toReceivedLikePageResDto(Page<StoryLike> page) {
+        return PageResDto.from(page.map(this::toReceivedLikeResDto));
+    }
+
+    public PageResDto<LikedStoryResDto> toLikedStoryPageResDto(Page<StoryLike> page) {
+        return PageResDto.from(page.map(this::toLikedStoryResDto));
+    }
+
+    public PageResDto<NotificationSummaryResDto> toNotificationPageResDto(Page<Notification> page) {
+        return PageResDto.from(page.map(this::toNotificationSummaryResDto));
     }
 }

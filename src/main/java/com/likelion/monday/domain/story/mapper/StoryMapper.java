@@ -2,6 +2,7 @@ package com.likelion.monday.domain.story.mapper;
 
 import com.likelion.monday.domain.story.dto.StoryCardResDto;
 import com.likelion.monday.domain.story.dto.StoryCreateReqDto;
+import com.likelion.monday.domain.story.dto.StoryDetailResDto;
 import com.likelion.monday.domain.story.dto.StoryImageResDto;
 import com.likelion.monday.domain.story.dto.StoryWriteResDto;
 import com.likelion.monday.domain.story.entity.Story;
@@ -40,6 +41,21 @@ public class StoryMapper {
                 nickname,
                 story.getCreatedAt(),
                 story.getViewCount(),
+                story.getLikeCount());
+    }
+
+    public StoryDetailResDto toDetailResDto(Story story, int viewCount, String nickname, List<String> imageUrls) {
+        return new StoryDetailResDto(
+                story.getId(),
+                story.getPetName(),
+                story.getPetType(),
+                story.getPetAge(),
+                story.getTitle(),
+                story.getContent(),
+                nickname,
+                imageUrls,
+                story.getCreatedAt(),
+                viewCount,
                 story.getLikeCount());
     }
 }

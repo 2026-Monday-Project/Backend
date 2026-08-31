@@ -24,6 +24,7 @@ public class PerformanceContent extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private LocalDateTime contentOpenAt;
 
     @Enumerated(EnumType.STRING)

@@ -17,21 +17,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 비로그인 사용자의 중복 공감 방지를 위해 accountId(로그인 시)와 guestKey(비로그인 시) 중 하나로 식별한다.
- * 같은 사연에 같은 계정/게스트가 중복으로 공감하지 못하도록 유니크 제약을 건다.
- * accountId/guestKey 중 정확히 하나만 채워지도록 하는 검증은 공감하기 API를 만들 때 서비스 레이어에서 처리한다.
+ * 비로그인 사용자의 중복 조회 방지를 위해 accountId(로그인 시)와 guestKey(비로그인 시) 중 하나로 식별한다.
+ * 같은 사연을 같은 계정/게스트가 다시 조회해도 조회수가 중복으로 올라가지 않도록 유니크 제약을 건다.
+ * accountId/guestKey 중 정확히 하나만 채워지도록 하는 검증은 상세조회 API를 만들 때 서비스 레이어에서 처리한다.
  */
 @Entity
 @Table(
-        name = "story_like",
+        name = "story_view",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_story_like_account", columnNames = {"story_id", "account_id"}),
-                @UniqueConstraint(name = "uk_story_like_guest", columnNames = {"story_id", "guest_key"})
+                @UniqueConstraint(name = "uk_story_view_account", columnNames = {"story_id", "account_id"}),
+                @UniqueConstraint(name = "uk_story_view_guest", columnNames = {"story_id", "guest_key"})
         }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StoryLike extends BaseEntity {
+public class StoryView extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,7 +48,7 @@ public class StoryLike extends BaseEntity {
     private String guestKey;
 
     @Builder
-    private StoryLike(Story story, Long accountId, String guestKey) {
+    private StoryView(Story story, Long accountId, String guestKey) {
         this.story = story;
         this.accountId = accountId;
         this.guestKey = guestKey;

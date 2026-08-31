@@ -120,4 +120,5 @@ public class Story extends BaseEntity {
     public boolean isOwnedBy(Long accountId) {
         return this.accountId.equals(accountId);
     }
+
 }

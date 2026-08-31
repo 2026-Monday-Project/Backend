@@ -6,19 +6,25 @@ import com.likelion.monday.domain.account.repository.AccountRepository;
 import com.likelion.monday.domain.story.constant.StorySort;
 import com.likelion.monday.domain.story.dto.StoryCardResDto;
 import com.likelion.monday.domain.story.dto.StoryCreateReqDto;
+import com.likelion.monday.domain.story.dto.StoryDetailResDto;
 import com.likelion.monday.domain.story.dto.StoryImageResDto;
 import com.likelion.monday.domain.story.dto.StoryPageResDto;
 import com.likelion.monday.domain.story.dto.StoryUpdateReqDto;
 import com.likelion.monday.domain.story.dto.StoryWriteResDto;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryImage;
+import com.likelion.monday.domain.story.entity.StoryLike;
 import com.likelion.monday.domain.story.entity.StoryStatus;
+import com.likelion.monday.domain.story.entity.StoryView;
 import com.likelion.monday.domain.story.exception.StoryErrorCode;
 import com.likelion.monday.domain.story.mapper.StoryMapper;
 import com.likelion.monday.domain.story.repository.StoryImageRepository;
+import com.likelion.monday.domain.story.repository.StoryLikeRepository;
 import com.likelion.monday.domain.story.repository.StoryRepository;
+import com.likelion.monday.domain.story.repository.StoryViewRepository;
 import com.likelion.monday.global.exception.CustomException;
 import com.likelion.monday.global.storage.ImageStorage;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +50,8 @@ public class StoryService {
 
     private final StoryRepository storyRepository;
     private final StoryImageRepository storyImageRepository;
+    private final StoryViewRepository storyViewRepository;
+    private final StoryLikeRepository storyLikeRepository;
     private final AccountRepository accountRepository;
     private final StoryMapper storyMapper;
     private final ImageStorage imageStorage;
@@ -73,6 +81,27 @@ public class StoryService {
                 stories.getSize(),
                 stories.getTotalElements(),
                 stories.getTotalPages());
+    }
+
+    /**
+     * 공개(PUBLIC)된 사연 하나를 상세로 보여준다.
+     * 같은 게스트가 같은 사연을 다시 봐도 조회수가 중복으로 올라가지 않도록, 조회 기록이 없을 때만 기록하고 조회수를 올린다.
+     */
+    public StoryDetailResDto getStory(Long storyId, String guestKey) {
+        Story story = storyRepository.findById(storyId)
+                .filter(s -> s.getStatus() == StoryStatus.PUBLIC)
+                .orElseThrow(() -> new CustomException(StoryErrorCode.STORY_NOT_FOUND));
+
+        boolean viewed = recordView(story, guestKey);
+        int viewCount = viewed ? story.getViewCount() + 1 : story.getViewCount();
+
+        Account account = accountRepository.findById(story.getAccountId())
+                .orElseThrow(() -> new CustomException(AccountErrorCode.ACCOUNT_NOT_FOUND));
+        List<String> imageUrls = storyImageRepository.findByStory_IdOrderBySortOrderAsc(storyId).stream()
+                .map(StoryImage::getImageUrl)
+                .toList();
+
+        return storyMapper.toDetailResDto(story, viewCount, account.getNickname(), imageUrls);
     }
 
     /**
@@ -143,6 +172,41 @@ public class StoryService {
         resultImages.addAll(uploadImages(story, newImages, keptImages.size()));
 
         return storyMapper.toWriteResDto(story, account.getNickname(), resultImages);
+    }
+
+    /**
+     * 사연에 공감을 등록한다.
+     * 로그인 상태면 accountId로, 비로그인이면 guestKey로 식별해 중복 공감을 막는다.
+     * 이미 공감한 상태로 다시 요청이 와도 에러 없이 무시한다(멱등).
+     */
+    public void likeStory(Long storyId, Long accountId, String guestKey) {
+        Story story = storyRepository.findById(storyId)
+                .filter(s -> s.getStatus() == StoryStatus.PUBLIC)
+                .orElseThrow(() -> new CustomException(StoryErrorCode.STORY_NOT_FOUND));
+
+        if (accountId != null) {
+            likeByAccount(story, accountId);
+        } else {
+            likeByGuest(story, guestKey);
+        }
+    }
+
+    /**
+     * 사연 공감을 취소한다.
+     * 공감한 기록이 없는 상태로 요청이 와도 에러 없이 무시한다(멱등).
+     */
+    public void unlikeStory(Long storyId, Long accountId, String guestKey) {
+        if (!storyRepository.existsById(storyId)) {
+            throw new CustomException(StoryErrorCode.STORY_NOT_FOUND);
+        }
+
+        long deletedCount = accountId != null
+                ? storyLikeRepository.deleteByStory_IdAndAccountId(storyId, accountId)
+                : storyLikeRepository.deleteByStory_IdAndGuestKey(storyId, guestKey);
+
+        if (deletedCount > 0) {
+            storyRepository.decreaseLikeCount(storyId);
+        }
     }
 
     private Account findOrCreateAccount(String email, String nickname) {
@@ -227,6 +291,33 @@ public class StoryService {
         storyImageRepository.deleteAll(images);
         storyImageRepository.flush();
         images.forEach(image -> imageStorage.delete(image.getImageUrl()));
+    }
+
+    /**
+     * 조회 기록이 없을 때만 저장하고 조회수를 올린다.
+     * INSERT IGNORE로 exists 체크와 삽입을 한 번에 처리해, 동시 요청이 와도 예외 없이 한쪽만 반영된다.
+     */
+    private boolean recordView(Story story, String guestKey) {
+        int inserted = storyViewRepository.insertIgnoreByGuest(story.getId(), guestKey, LocalDateTime.now());
+        if (inserted > 0) {
+            storyRepository.increaseViewCount(story.getId());
+            return true;
+        }
+        return false;
+    }
+
+    private void likeByAccount(Story story, Long accountId) {
+        int inserted = storyLikeRepository.insertIgnoreByAccount(story.getId(), accountId, LocalDateTime.now());
+        if (inserted > 0) {
+            storyRepository.increaseLikeCount(story.getId());
+        }
+    }
+
+    private void likeByGuest(Story story, String guestKey) {
+        int inserted = storyLikeRepository.insertIgnoreByGuest(story.getId(), guestKey, LocalDateTime.now());
+        if (inserted > 0) {
+            storyRepository.increaseLikeCount(story.getId());
+        }
     }
 
     private Map<Long, String> findThumbnails(List<Story> stories) {

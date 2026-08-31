@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "MyGarden", description = "내 정원 API")
@@ -19,14 +18,15 @@ public interface MyGardenControllerDocs {
             description = "마이페이지 요약용으로 최신 사연 2건만 조회한다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    ApiResponse<List<MyStorySummaryResDto>> getMyStoriesPreview(@Parameter(hidden = true) Long accountId);
+    ApiResponse<java.util.List<MyStorySummaryResDto>> getMyStoriesPreview(@Parameter(hidden = true) Long accountId);
 
     @Operation(
-            summary = "내 사연 전체/필터 조회",
+            summary = "내 사연 전체/필터 조회 (페이지네이션)",
             description = "status를 생략하면 전체(ALL), 지정하면 검토중/공개/비공개로 필터링해 최신순으로 조회한다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    ApiResponse<List<MyStorySummaryResDto>> getMyStories(@Parameter(hidden = true) Long accountId, StoryStatus status);
+    ApiResponse<PageResDto<MyStorySummaryResDto>> getMyStories(
+            @Parameter(hidden = true) Long accountId, StoryStatus status, int page, int size);
 
     @Operation(
             summary = "내 정원 홈 - 활동 요약 조회",
@@ -36,25 +36,20 @@ public interface MyGardenControllerDocs {
     ApiResponse<MyActivitySummaryResDto> getActivitySummary(@Parameter(hidden = true) Long accountId);
 
     @Operation(
-            summary = "보낸 사연 조회",
-            description = "내가 작성한 사연 전체를 최신순으로 조회한다.",
-            security = @SecurityRequirement(name = "bearerAuth")
-    )
-    ApiResponse<List<SentStoryResDto>> getSentStories(@Parameter(hidden = true) Long accountId);
-
-    @Operation(
-            summary = "받은 공감 조회",
+            summary = "받은 공감 조회 (페이지네이션)",
             description = "내가 쓴 사연들에 달린 공감을 최신순으로 조회한다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    ApiResponse<List<ReceivedLikeResDto>> getReceivedLikes(@Parameter(hidden = true) Long accountId);
+    ApiResponse<PageResDto<ReceivedLikeResDto>> getReceivedLikes(
+            @Parameter(hidden = true) Long accountId, int page, int size);
 
     @Operation(
-            summary = "공감한 사연 조회",
+            summary = "공감한 사연 조회 (페이지네이션)",
             description = "내가 다른 사연에 남긴 공감을 최신순으로 조회한다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    ApiResponse<List<LikedStoryResDto>> getLikedStories(@Parameter(hidden = true) Long accountId);
+    ApiResponse<PageResDto<LikedStoryResDto>> getLikedStories(
+            @Parameter(hidden = true) Long accountId, int page, int size);
 
     @Operation(
             summary = "내 사연 상세 조회",
@@ -69,4 +64,26 @@ public interface MyGardenControllerDocs {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     ApiResponse<Void> deleteMyStory(@Parameter(hidden = true) Long accountId, Long storyId);
+
+    @Operation(
+            summary = "알림 편지함 미리보기 조회",
+            description = "마이페이지 요약용으로 최신 알림 2건만 조회한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<java.util.List<NotificationSummaryResDto>> getNotificationsPreview(@Parameter(hidden = true) Long accountId);
+
+    @Operation(
+            summary = "알림 편지함 전체 조회 (페이지네이션)",
+            description = "읽음/안읽음을 함께 최신순으로 조회한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<PageResDto<NotificationSummaryResDto>> getNotifications(
+            @Parameter(hidden = true) Long accountId, int page, int size);
+
+    @Operation(
+            summary = "알림 상세 조회",
+            description = "조회 시점에 해당 알림을 읽음 처리한다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    ApiResponse<NotificationDetailResDto> getNotificationDetail(@Parameter(hidden = true) Long accountId, Long notificationId);
 }
