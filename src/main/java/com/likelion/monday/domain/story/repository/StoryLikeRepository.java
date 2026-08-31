@@ -2,7 +2,8 @@ package com.likelion.monday.domain.story.repository;
 
 import com.likelion.monday.domain.story.entity.StoryLike;
 import java.time.LocalDateTime;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,15 +11,19 @@ import org.springframework.data.repository.query.Param;
 
 public interface StoryLikeRepository extends JpaRepository<StoryLike, Long> {
 
+    // 내 정원 홈 - 활동 요약: 내가 쓴 사연들이 받은 공감 수
     long countByStory_AccountId(Long accountId);
 
+    // 내 정원 홈 - 활동 요약: 내가 남긴 공감 수
     long countByAccountId(Long accountId);
 
     long countByStory_IdAndAccountId(Long storyId, Long accountId);
 
-    List<StoryLike> findAllByStory_AccountIdOrderByCreatedAtDesc(Long accountId);
+    // 받은 공감 목록 (페이지네이션)
+    Page<StoryLike> findAllByStory_AccountId(Long accountId, Pageable pageable);
 
-    List<StoryLike> findAllByAccountIdOrderByCreatedAtDesc(Long accountId);
+    // 공감한 사연 목록 (페이지네이션)
+    Page<StoryLike> findAllByAccountId(Long accountId, Pageable pageable);
 
     long deleteByStory_IdAndAccountId(Long storyId, Long accountId);
 
