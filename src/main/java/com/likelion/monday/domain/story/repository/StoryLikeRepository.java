@@ -14,6 +14,8 @@ public interface StoryLikeRepository extends JpaRepository<StoryLike, Long> {
 
     long countByAccountId(Long accountId);
 
+    long countByStory_IdAndAccountId(Long storyId, Long accountId);
+
     List<StoryLike> findAllByStory_AccountIdOrderByCreatedAtDesc(Long accountId);
 
     List<StoryLike> findAllByAccountIdOrderByCreatedAtDesc(Long accountId);
