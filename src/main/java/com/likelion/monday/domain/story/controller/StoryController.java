@@ -3,11 +3,15 @@ package com.likelion.monday.domain.story.controller;
 import com.likelion.monday.domain.account.auth.LoginAccountId;
 import com.likelion.monday.domain.story.constant.StorySort;
 import com.likelion.monday.domain.story.dto.StoryCreateReqDto;
+import com.likelion.monday.domain.story.dto.StoryDetailResDto;
 import com.likelion.monday.domain.story.dto.StoryPageResDto;
 import com.likelion.monday.domain.story.dto.StoryUpdateReqDto;
 import com.likelion.monday.domain.story.dto.StoryWriteResDto;
 import com.likelion.monday.domain.story.service.StoryService;
+import com.likelion.monday.global.cookie.GuestKeyProvider;
 import com.likelion.monday.global.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class StoryController implements StoryControllerDocs {
 
     private final StoryService storyService;
+    private final GuestKeyProvider guestKeyProvider;
 
     @Override
     @GetMapping
@@ -36,6 +41,16 @@ public class StoryController implements StoryControllerDocs {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.success(storyService.getStories(sort, page, size));
+    }
+
+    @Override
+    @GetMapping("/{storyId}")
+    public ApiResponse<StoryDetailResDto> getStory(
+            @PathVariable Long storyId,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        String guestKey = guestKeyProvider.resolve(request, response);
+        return ApiResponse.success(storyService.getStory(storyId, guestKey));
     }
 
     @Override

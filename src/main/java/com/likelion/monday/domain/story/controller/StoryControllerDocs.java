@@ -2,6 +2,7 @@ package com.likelion.monday.domain.story.controller;
 
 import com.likelion.monday.domain.story.constant.StorySort;
 import com.likelion.monday.domain.story.dto.StoryCreateReqDto;
+import com.likelion.monday.domain.story.dto.StoryDetailResDto;
 import com.likelion.monday.domain.story.dto.StoryPageResDto;
 import com.likelion.monday.domain.story.dto.StoryUpdateReqDto;
 import com.likelion.monday.domain.story.dto.StoryWriteResDto;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,4 +55,14 @@ public interface StoryControllerDocs {
                     """
     )
     ApiResponse<StoryPageResDto> getStories(StorySort sort, int page, int size);
+
+    @Operation(
+            summary = "사연 상세 조회",
+            description = """
+                    공개(PUBLIC)된 사연 하나를 상세로 조회한다. 본문과 전체 사진 목록을 포함한다.
+                    응답과 함께 게스트 식별용 쿠키(guest_key)가 발급되며, 이후 같은 브라우저로 다시 조회해도 조회수에 반영되지 않는다.
+                    검토중이거나 비공개인 사연은 404로 처리한다.
+                    """
+    )
+    ApiResponse<StoryDetailResDto> getStory(Long storyId, HttpServletRequest request, HttpServletResponse response);
 }
