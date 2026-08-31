@@ -8,7 +8,6 @@ import com.likelion.monday.global.response.ApiResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.DeleteMapping;
 
 @RestController
 @RequiredArgsConstructor
@@ -69,5 +68,17 @@ public class MyGardenController implements MyGardenControllerDocs {
             @PathVariable("storyId") Long storyId) {
         myGardenService.deleteMyStory(accountId, storyId);
         return ApiResponse.success();
+    }
+
+    @Override
+    @GetMapping("/notifications/preview")
+    public ApiResponse<List<NotificationSummaryResDto>> getNotificationsPreview(@LoginAccountId Long accountId) {
+        return ApiResponse.success(myGardenService.getNotificationsPreview(accountId));
+    }
+
+    @Override
+    @GetMapping("/notifications")
+    public ApiResponse<List<NotificationSummaryResDto>> getNotifications(@LoginAccountId Long accountId) {
+        return ApiResponse.success(myGardenService.getNotifications(accountId));
     }
 }
