@@ -1,5 +1,6 @@
 package com.likelion.monday.domain.story.controller;
 
+import com.likelion.monday.domain.account.auth.LoginAccountId;
 import com.likelion.monday.domain.story.constant.StorySort;
 import com.likelion.monday.domain.story.dto.StoryCreateReqDto;
 import com.likelion.monday.domain.story.dto.StoryDetailResDto;
@@ -64,9 +65,10 @@ public class StoryController implements StoryControllerDocs {
     @Override
     @PatchMapping(value = "/{storyId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<StoryWriteResDto> updateStory(
+            @LoginAccountId Long accountId,
             @PathVariable Long storyId,
             @Valid @RequestPart("request") StoryUpdateReqDto request,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
-        return ApiResponse.success(storyService.updateStory(storyId, request, images));
+        return ApiResponse.success(storyService.updateStory(accountId, storyId, request, images));
     }
 }

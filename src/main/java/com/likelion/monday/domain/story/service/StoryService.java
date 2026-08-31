@@ -118,12 +118,14 @@ public class StoryService {
 
     /**
      * 검토중인 본인 사연을 수정한다.
+     * 작성자 확인은 로그인 토큰에서 꺼낸 계정으로 처리한다.
      * 남길 사진은 keepImageIds로 받고, 새로 올린 사진을 그 뒤에 이어 붙여 노출 순서를 다시 매긴다.
      */
-    public StoryWriteResDto updateStory(Long storyId, StoryUpdateReqDto request, List<MultipartFile> images) {
+    public StoryWriteResDto updateStory(Long accountId, Long storyId, StoryUpdateReqDto request,
+                                        List<MultipartFile> images) {
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new CustomException(StoryErrorCode.STORY_NOT_FOUND));
-        Account account = accountRepository.findByEmail(request.email())
+        Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new CustomException(AccountErrorCode.ACCOUNT_NOT_FOUND));
 
         if (!story.isOwnedBy(account.getId())) {
