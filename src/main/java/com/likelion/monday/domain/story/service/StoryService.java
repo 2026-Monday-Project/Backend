@@ -23,12 +23,12 @@ import com.likelion.monday.domain.story.repository.StoryRepository;
 import com.likelion.monday.domain.story.repository.StoryViewRepository;
 import com.likelion.monday.global.exception.CustomException;
 import com.likelion.monday.global.storage.ImageStorage;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -290,55 +290,28 @@ public class StoryService {
 
     /**
      * 조회 기록이 없을 때만 저장하고 조회수를 올린다.
-     * exists 확인과 insert 사이에 동시 요청이 들어올 수 있으므로, 유니크 제약 위반도 함께 잡아서 무시한다.
+     * INSERT IGNORE로 exists 체크와 삽입을 한 번에 처리해, 동시 요청이 와도 예외 없이 한쪽만 반영된다.
      */
     private boolean recordView(Story story, String guestKey) {
-        if (storyViewRepository.existsByStory_IdAndGuestKey(story.getId(), guestKey)) {
-            return false;
-        }
-
-        try {
-            storyViewRepository.save(StoryView.builder()
-                    .story(story)
-                    .guestKey(guestKey)
-                    .build());
+        int inserted = storyViewRepository.insertIgnoreByGuest(story.getId(), guestKey, LocalDateTime.now());
+        if (inserted > 0) {
             storyRepository.increaseViewCount(story.getId());
             return true;
-        } catch (DataIntegrityViolationException e) {
-            // 동시 요청으로 이미 기록된 경우, 조회수는 올리지 않고 그대로 둔다.
-            return false;
         }
+        return false;
     }
 
     private void likeByAccount(Story story, Long accountId) {
-        if (storyLikeRepository.existsByStory_IdAndAccountId(story.getId(), accountId)) {
-            return;
-        }
-
-        try {
-            storyLikeRepository.save(StoryLike.builder()
-                    .story(story)
-                    .accountId(accountId)
-                    .build());
+        int inserted = storyLikeRepository.insertIgnoreByAccount(story.getId(), accountId, LocalDateTime.now());
+        if (inserted > 0) {
             storyRepository.increaseLikeCount(story.getId());
-        } catch (DataIntegrityViolationException e) {
-            // 동시 요청으로 이미 등록된 경우, 무시한다.
         }
     }
 
     private void likeByGuest(Story story, String guestKey) {
-        if (storyLikeRepository.existsByStory_IdAndGuestKey(story.getId(), guestKey)) {
-            return;
-        }
-
-        try {
-            storyLikeRepository.save(StoryLike.builder()
-                    .story(story)
-                    .guestKey(guestKey)
-                    .build());
+        int inserted = storyLikeRepository.insertIgnoreByGuest(story.getId(), guestKey, LocalDateTime.now());
+        if (inserted > 0) {
             storyRepository.increaseLikeCount(story.getId());
-        } catch (DataIntegrityViolationException e) {
-            // 동시 요청으로 이미 등록된 경우, 무시한다.
         }
     }
 
