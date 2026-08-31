@@ -6,6 +6,7 @@ import com.likelion.monday.domain.account.repository.AccountRepository;
 import com.likelion.monday.domain.story.constant.StorySort;
 import com.likelion.monday.domain.story.dto.StoryCardResDto;
 import com.likelion.monday.domain.story.dto.StoryCreateReqDto;
+import com.likelion.monday.domain.story.dto.StoryImageResDto;
 import com.likelion.monday.domain.story.dto.StoryPageResDto;
 import com.likelion.monday.domain.story.dto.StoryUpdateReqDto;
 import com.likelion.monday.domain.story.dto.StoryWriteResDto;
@@ -85,9 +86,9 @@ public class StoryService {
 
         Account account = findOrCreateAccount(request.email(), request.nickname());
         Story story = storyRepository.save(storyMapper.toEntity(request, account.getId()));
-        List<String> imageUrls = uploadImages(story, newImages, 0);
+        List<StoryImageResDto> savedImages = uploadImages(story, newImages, 0);
 
-        return storyMapper.toWriteResDto(story, account.getNickname(), imageUrls);
+        return storyMapper.toWriteResDto(story, account.getNickname(), savedImages);
     }
 
     /**
@@ -109,12 +110,16 @@ public class StoryService {
             throw new CustomException(StoryErrorCode.STORY_NOT_EDITABLE);
         }
 
-        List<Long> keepImageIds = request.keepImageIds() == null ? List.of() : request.keepImageIds();
+        // 같은 ID를 여러 번 보내도 한 장으로 취급한다.
+        List<Long> keepImageIds = request.keepImageIds() == null
+                ? List.of()
+                : request.keepImageIds().stream().distinct().toList();
         List<StoryImage> savedImages = storyImageRepository.findByStory_IdOrderBySortOrderAsc(storyId);
         List<StoryImage> keptImages = savedImages.stream()
                 .filter(image -> keepImageIds.contains(image.getId()))
                 .toList();
         if (keptImages.size() != keepImageIds.size()) {
+            // 다른 사연의 사진 ID이거나 이미 삭제된 사진을 남기라고 지정한 경우다.
             throw new CustomException(StoryErrorCode.STORY_IMAGE_NOT_FOUND);
         }
 
@@ -129,15 +134,15 @@ public class StoryService {
                 .toList();
         deleteImages(removedImages);
 
-        List<String> imageUrls = new ArrayList<>();
+        List<StoryImageResDto> resultImages = new ArrayList<>();
         for (int i = 0; i < keptImages.size(); i++) {
             StoryImage keptImage = keptImages.get(i);
             keptImage.updateSortOrder(i);
-            imageUrls.add(keptImage.getImageUrl());
+            resultImages.add(StoryImageResDto.from(keptImage));
         }
-        imageUrls.addAll(uploadImages(story, newImages, keptImages.size()));
+        resultImages.addAll(uploadImages(story, newImages, keptImages.size()));
 
-        return storyMapper.toWriteResDto(story, account.getNickname(), imageUrls);
+        return storyMapper.toWriteResDto(story, account.getNickname(), resultImages);
     }
 
     private Account findOrCreateAccount(String email, String nickname) {
@@ -199,19 +204,19 @@ public class StoryService {
         }
     }
 
-    private List<String> uploadImages(Story story, List<MultipartFile> images, int startSortOrder) {
-        List<String> imageUrls = new ArrayList<>();
+    private List<StoryImageResDto> uploadImages(Story story, List<MultipartFile> images, int startSortOrder) {
+        List<StoryImageResDto> savedImages = new ArrayList<>();
         for (int i = 0; i < images.size(); i++) {
             String imageUrl = imageStorage.upload(images.get(i), IMAGE_DIRECTORY);
-            storyImageRepository.save(StoryImage.builder()
+            StoryImage savedImage = storyImageRepository.save(StoryImage.builder()
                     .story(story)
                     .imageUrl(imageUrl)
                     .sortOrder(startSortOrder + i)
                     .build());
-            imageUrls.add(imageUrl);
+            savedImages.add(StoryImageResDto.from(savedImage));
         }
 
-        return imageUrls;
+        return savedImages;
     }
 
     private void deleteImages(List<StoryImage> images) {
