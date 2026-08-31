@@ -106,13 +106,13 @@ public class MyGardenService {
     }
 
     public List<NotificationSummaryResDto> getNotificationsPreview(Long accountId) {
-        return notificationRepository.findTop2ByAccountIdOrderByCreatedAtDesc(accountId).stream()
+        return notificationRepository.findTop2ByAccountIdOrderByCreatedAtDescIdDesc(accountId).stream()
                 .map(myGardenMapper::toNotificationSummaryResDto)
                 .toList();
     }
 
     public List<NotificationSummaryResDto> getNotifications(Long accountId) {
-        return notificationRepository.findAllByAccountIdOrderByCreatedAtDesc(accountId).stream()
+        return notificationRepository.findAllByAccountIdOrderByCreatedAtDescIdDesc(accountId).stream()
                 .map(myGardenMapper::toNotificationSummaryResDto)
                 .toList();
     }

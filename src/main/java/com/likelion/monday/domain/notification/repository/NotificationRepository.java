@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findTop2ByAccountIdOrderByCreatedAtDesc(Long accountId);
+    List<Notification> findTop2ByAccountIdOrderByCreatedAtDescIdDesc(Long accountId);
 
-    List<Notification> findAllByAccountIdOrderByCreatedAtDesc(Long accountId);
+    List<Notification> findAllByAccountIdOrderByCreatedAtDescIdDesc(Long accountId);
 }
