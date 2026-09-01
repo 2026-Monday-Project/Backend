@@ -1,0 +1,15 @@
+.git
+.gitignore
+.idea
+.vscode
+.claude
+CLAUDE.md
+README.md
+HELP.md
+build/
+out/
+.gradle/
+uploads/
+notes/
+*.md
+src/main/resources/application-local.yml
