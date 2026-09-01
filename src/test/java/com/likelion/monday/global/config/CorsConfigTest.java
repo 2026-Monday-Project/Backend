@@ -47,4 +47,14 @@ class CorsConfigTest {
 
         assertThatCode(corsConfig::validateProdOrigin).doesNotThrowAnyException();
     }
+
+    @Test
+    @DisplayName("prod 프로파일이어도 실제 배포 origin과 로컬 origin이 함께 있으면 정상 기동한다")
+    void prod에서_실제_origin과_로컬_origin이_함께면_정상() {
+        given(environment.acceptsProfiles(any(Profiles.class))).willReturn(true);
+        CorsConfig corsConfig = new CorsConfig(
+                List.of("https://monday.example.com", CorsConfig.DEFAULT_LOCAL_ORIGIN), environment);
+
+        assertThatCode(corsConfig::validateProdOrigin).doesNotThrowAnyException();
+    }
 }
