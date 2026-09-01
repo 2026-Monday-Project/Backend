@@ -43,3 +43,7 @@ notes/
 application-local.yml
 
 uploads/
+
+### deploy ###
+.env
+*.pem
