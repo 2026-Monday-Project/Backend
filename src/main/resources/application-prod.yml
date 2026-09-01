@@ -1,6 +1,12 @@
 ## 운영(prod) 프로파일 설정. 값은 전부 환경변수로 주입하며, 실제 값은 이 파일에 직접 쓰지 않는다.
 ## EC2에서 `docker run --env-file .env ...`로 아래 환경변수들을 채워서 실행한다. (.env는 git에 올리지 않음)
 
+server:
+  # Nginx가 TLS를 종료하고 뒤에서는 HTTP로 넘겨주기 때문에, X-Forwarded-* 헤더를 신뢰하도록 설정하지 않으면
+  # Spring이 요청을 http로 오인해 springdoc 서버 URL 등이 http://로 잘못 생성되고, 그로 인해 Swagger UI에서
+  # 호출 시 scheme 불일치로 CORS/혼합 콘텐츠 오류가 발생한다.
+  forward-headers-strategy: framework
+
 spring:
   datasource:
     url: ${DB_URL}
@@ -18,8 +24,8 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 60MB
+      max-file-size: 20MB
+      max-request-size: 110MB
 
 app:
   storage:
