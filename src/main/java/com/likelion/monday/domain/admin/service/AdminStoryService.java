@@ -73,14 +73,14 @@ public class AdminStoryService {
                 ? storyRepository.findAll(pageable)
                 : storyRepository.findAllByStatus(status, pageable);
 
-        Map<Long, String> thumbnails = findThumbnails(stories.getContent());
+        Map<Long, List<StoryImage>> images = findImages(stories.getContent());
         Map<Long, String> nicknames = findNicknames(stories.getContent());
 
         List<AdminStorySummaryResDto> summaries = stories.getContent().stream()
                 .map(story -> adminStoryMapper.toSummaryResDto(
                         story,
                         nicknames.get(story.getAccountId()),
-                        thumbnails.get(story.getId())))
+                        images.getOrDefault(story.getId(), List.of())))
                 .toList();
 
         return new AdminStoryPageResDto(
@@ -174,7 +174,11 @@ public class AdminStoryService {
                 .orElseThrow(() -> new CustomException(AccountErrorCode.ACCOUNT_NOT_FOUND));
     }
 
-    private Map<Long, String> findThumbnails(List<Story> stories) {
+    /**
+     * 목록 카드에 대표 사진과 사진 개수를 함께 보여줘야 하므로 사연별 사진을 통째로 묶어 둔다.
+     * 사연마다 조회하면 N+1이 되므로 한 페이지 분량을 한 번에 가져온다.
+     */
+    private Map<Long, List<StoryImage>> findImages(List<Story> stories) {
         List<Long> storyIds = stories.stream()
                 .map(Story::getId)
                 .toList();
@@ -182,12 +186,9 @@ public class AdminStoryService {
             return Map.of();
         }
 
-        // 정렬 순서가 앞선 사진이 대표 사진이므로 사연당 첫 번째만 남긴다.
+        // 노출 순서대로 조회하므로 각 목록의 첫 번째가 대표 사진이 된다.
         return storyImageRepository.findByStory_IdInOrderBySortOrderAsc(storyIds).stream()
-                .collect(Collectors.toMap(
-                        image -> image.getStory().getId(),
-                        StoryImage::getImageUrl,
-                        (first, second) -> first));
+                .collect(Collectors.groupingBy(image -> image.getStory().getId()));
     }
 
     private Map<Long, String> findNicknames(List<Story> stories) {
