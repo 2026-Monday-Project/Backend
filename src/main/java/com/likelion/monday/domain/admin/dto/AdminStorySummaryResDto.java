@@ -25,6 +25,9 @@ public record AdminStorySummaryResDto(
         @Schema(description = "대표 사진 URL. 첨부 사진이 없으면 null")
         String thumbnailUrl,
 
+        @Schema(description = "첨부된 사진 수. 목록 카드의 \"사진 N장\" 표시에 사용한다.", example = "3")
+        int imageCount,
+
         @Schema(description = "제출 일시")
         LocalDateTime createdAt
 ) {
