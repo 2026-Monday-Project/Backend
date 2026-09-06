@@ -38,6 +38,10 @@ public record StoryDetailResDto(
         int viewCount,
 
         @Schema(description = "공감수", example = "12")
-        int likeCount
+        int likeCount,
+
+        @Schema(description = "현재 사용자(로그인 계정 또는 게스트)의 공감 여부", example = "true")
+        boolean liked
+
 ) {
 }

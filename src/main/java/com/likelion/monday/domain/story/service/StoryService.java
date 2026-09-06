@@ -87,7 +87,7 @@ public class StoryService {
      * 공개(PUBLIC)된 사연 하나를 상세로 보여준다.
      * 같은 게스트가 같은 사연을 다시 봐도 조회수가 중복으로 올라가지 않도록, 조회 기록이 없을 때만 기록하고 조회수를 올린다.
      */
-    public StoryDetailResDto getStory(Long storyId, String guestKey) {
+    public StoryDetailResDto getStory(Long storyId, Long accountId, String guestKey) {
         Story story = storyRepository.findById(storyId)
                 .filter(s -> s.getStatus() == StoryStatus.PUBLIC)
                 .orElseThrow(() -> new CustomException(StoryErrorCode.STORY_NOT_FOUND));
@@ -101,7 +101,18 @@ public class StoryService {
                 .map(StoryImage::getImageUrl)
                 .toList();
 
-        return storyMapper.toDetailResDto(story, viewCount, account.getNickname(), imageUrls);
+        boolean liked = isLiked(storyId, accountId, guestKey);
+
+        return storyMapper.toDetailResDto(story, viewCount, account.getNickname(), imageUrls, liked);
+    }
+
+    /**
+     * 로그인 계정이면 계정 기준으로, 비로그인이면 guest_key 기준으로 현재 사용자의 공감 여부를 확인한다.
+     */
+    private boolean isLiked(Long storyId, Long accountId, String guestKey) {
+        return accountId != null
+                ? storyLikeRepository.countByStory_IdAndAccountId(storyId, accountId) > 0
+                : storyLikeRepository.existsByStory_IdAndGuestKey(storyId, guestKey);
     }
 
     /**

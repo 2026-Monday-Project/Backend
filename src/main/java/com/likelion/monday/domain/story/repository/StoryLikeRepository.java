@@ -19,6 +19,9 @@ public interface StoryLikeRepository extends JpaRepository<StoryLike, Long> {
 
     long countByStory_IdAndAccountId(Long storyId, Long accountId);
 
+    // 게스트가 이미 이 사연에 공감했는지 확인
+    boolean existsByStory_IdAndGuestKey(Long storyId, String guestKey);
+
     // 받은 공감 목록 (페이지네이션)
     Page<StoryLike> findAllByStory_AccountId(Long accountId, Pageable pageable);
 
