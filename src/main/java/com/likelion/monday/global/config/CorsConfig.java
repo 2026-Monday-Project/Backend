@@ -13,7 +13,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class CorsConfig {
 
-    static final String DEFAULT_LOCAL_ORIGIN = "http://localhost:5173";
+    public static final String DEFAULT_LOCAL_ORIGIN = "http://localhost:5173";
 
     private final List<String> allowedOrigins;
     private final Environment environment;
