@@ -83,10 +83,14 @@ public interface StoryControllerDocs {
     @Operation(
             summary = "사연 상세 조회",
             description = """
-                    공개(PUBLIC)된 사연 하나를 상세로 조회한다. 본문과 전체 사진 목록을 포함한다.
-                    응답과 함께 게스트 식별용 쿠키(guest_key)가 발급되며, 이후 같은 브라우저로 다시 조회해도 조회수에 반영되지 않는다.
-                    검토중이거나 비공개인 사연은 404로 처리한다.
-                    """
+                공개(PUBLIC)된 사연 하나를 상세로 조회한다. 본문과 전체 사진 목록을 포함한다.
+                응답과 함께 게스트 식별용 쿠키(guest_key)가 발급되며, 이후 같은 브라우저로 다시 조회해도 조회수에 반영되지 않는다.
+                검토중이거나 비공개인 사연은 404로 처리한다.
+                응답의 liked 필드로 현재 사용자(로그인 계정 또는 게스트)의 공감 여부를 함께 내려준다.
+                """,
+            security = @SecurityRequirement(name = "bearerAuth")
     )
-    ApiResponse<StoryDetailResDto> getStory(Long storyId, HttpServletRequest request, HttpServletResponse response);
+    ApiResponse<StoryDetailResDto> getStory(@Parameter(hidden = true) Long accountId, Long storyId,
+                                            HttpServletRequest request, HttpServletResponse response);
+
 }

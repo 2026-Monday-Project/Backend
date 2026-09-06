@@ -48,11 +48,12 @@ public class StoryController implements StoryControllerDocs {
     @Override
     @GetMapping("/{storyId}")
     public ApiResponse<StoryDetailResDto> getStory(
+            @OptionalLoginAccountId Long accountId,
             @PathVariable Long storyId,
             HttpServletRequest request,
             HttpServletResponse response) {
         String guestKey = guestKeyProvider.resolve(request, response);
-        return ApiResponse.success(storyService.getStory(storyId, guestKey));
+        return ApiResponse.success(storyService.getStory(storyId, accountId, guestKey));
     }
 
     @Override

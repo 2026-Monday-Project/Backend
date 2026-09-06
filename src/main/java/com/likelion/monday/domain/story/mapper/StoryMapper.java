@@ -44,7 +44,7 @@ public class StoryMapper {
                 story.getLikeCount());
     }
 
-    public StoryDetailResDto toDetailResDto(Story story, int viewCount, String nickname, List<String> imageUrls) {
+    public StoryDetailResDto toDetailResDto(Story story, int viewCount, String nickname, List<String> imageUrls, boolean liked) {
         return new StoryDetailResDto(
                 story.getId(),
                 story.getPetName(),
@@ -56,6 +56,7 @@ public class StoryMapper {
                 imageUrls,
                 story.getCreatedAt(),
                 viewCount,
-                story.getLikeCount());
+                story.getLikeCount(),
+                liked);
     }
 }
