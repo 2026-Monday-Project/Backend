@@ -106,6 +106,9 @@ public class StoryService {
         return storyMapper.toDetailResDto(story, viewCount, account.getNickname(), imageUrls, liked);
     }
 
+    /**
+     * 로그인 계정이면 계정 기준으로, 비로그인이면 guest_key 기준으로 현재 사용자의 공감 여부를 확인한다.
+     */
     private boolean isLiked(Long storyId, Long accountId, String guestKey) {
         return accountId != null
                 ? storyLikeRepository.countByStory_IdAndAccountId(storyId, accountId) > 0
