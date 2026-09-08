@@ -11,9 +11,12 @@ import com.likelion.monday.domain.story.entity.StoryStatus;
 import com.likelion.monday.domain.story.repository.StoryImageRepository;
 import com.likelion.monday.domain.story.repository.StoryLikeRepository;
 import com.likelion.monday.domain.story.repository.StoryRepository;
+import com.likelion.monday.domain.story.repository.StoryViewRepository;
 import com.likelion.monday.global.exception.CustomException;
 import com.likelion.monday.global.storage.ImageStorage;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,13 +36,17 @@ public class MyGardenService {
     private final StoryRepository storyRepository;
     private final StoryLikeRepository storyLikeRepository;
     private final StoryImageRepository storyImageRepository;
+    private final StoryViewRepository storyViewRepository;
     private final MyGardenMapper myGardenMapper;
     private final ImageStorage imageStorage;
     private final NotificationRepository notificationRepository;
 
     public List<MyStorySummaryResDto> getMyStoriesPreview(Long accountId) {
-        return storyRepository.findTop2ByAccountIdOrderByCreatedAtDesc(accountId).stream()
-                .map(myGardenMapper::toSummaryResDto)
+        List<Story> stories = storyRepository.findTop2ByAccountIdOrderByCreatedAtDesc(accountId);
+        Map<Long, String> thumbnails = findThumbnails(stories);
+
+        return stories.stream()
+                .map(story -> myGardenMapper.toSummaryResDto(story, thumbnails.get(story.getId())))
                 .toList();
     }
 
@@ -49,8 +56,18 @@ public class MyGardenService {
         Page<Story> stories = status == null
                 ? storyRepository.findAllByAccountId(accountId, pageable)
                 : storyRepository.findAllByAccountIdAndStatus(accountId, status, pageable);
+        Map<Long, String> thumbnails = findThumbnails(stories.getContent());
 
-        return myGardenMapper.toMyStoryPageResDto(stories);
+        List<MyStorySummaryResDto> content = stories.getContent().stream()
+                .map(story -> myGardenMapper.toSummaryResDto(story, thumbnails.get(story.getId())))
+                .toList();
+
+        return new PageResDto<>(
+                content,
+                stories.getNumber(),
+                stories.getSize(),
+                stories.getTotalElements(),
+                stories.getTotalPages());
     }
 
     public MyActivitySummaryResDto getActivitySummary(Long accountId) {
@@ -100,6 +117,10 @@ public class MyGardenService {
         storyImageRepository.flush();
         images.forEach(image -> imageStorage.delete(image.getImageUrl()));
 
+        // 사연을 참조하는 공감/조회 기록을 먼저 정리해야 외래키 제약 없이 삭제된다.
+        storyLikeRepository.deleteByStory_Id(storyId);
+        storyViewRepository.deleteByStory_Id(storyId);
+
         storyRepository.delete(story);
     }
 
@@ -125,6 +146,22 @@ public class MyGardenService {
         notification.markAsRead();
 
         return myGardenMapper.toNotificationDetailResDto(notification);
+    }
+
+    // 목록에서 사연마다 대표 사진을 따로 조회하면 N+1이 되므로, 한 번에 가져와 묶는다.
+    private Map<Long, String> findThumbnails(List<Story> stories) {
+        List<Long> storyIds = stories.stream()
+                .map(Story::getId)
+                .toList();
+        if (storyIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return storyImageRepository.findByStory_IdInOrderBySortOrderAsc(storyIds).stream()
+                .collect(Collectors.toMap(
+                        image -> image.getStory().getId(),
+                        StoryImage::getImageUrl,
+                        (first, second) -> first));
     }
 
     // 목록 API 전반에서 쓰는 페이지 요청 생성. 최신순 정렬에 id를 보조 기준으로 더해 순서를 보장한다.

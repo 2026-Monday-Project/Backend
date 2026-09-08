@@ -19,6 +19,12 @@ public record MyStorySummaryResDto(
         @Schema(description = "사연 상태", example = "PENDING")
         StoryStatus status,
 
+        @Schema(description = "대표 사진 URL. 첨부 사진이 없으면 null")
+        String thumbnailUrl,
+
+        @Schema(description = "조회 수", example = "128")
+        int viewCount,
+
         @Schema(description = "받은 공감 수", example = "12")
         int likeCount,
 
