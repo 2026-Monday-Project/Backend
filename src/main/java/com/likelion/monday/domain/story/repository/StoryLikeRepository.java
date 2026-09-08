@@ -32,6 +32,8 @@ public interface StoryLikeRepository extends JpaRepository<StoryLike, Long> {
 
     long deleteByStory_IdAndGuestKey(Long storyId, String guestKey);
 
+    long deleteByStory_Id(Long storyId);
+
     /**
      * 유니크 제약(story_id, account_id)에 걸리면 삽입을 조용히 무시한다.
      * exists 확인 후 insert하던 기존 방식과 달리 하나의 원자적 쿼리라 동시 요청에도 안전하다.

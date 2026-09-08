@@ -11,12 +11,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class MyGardenMapper {
 
-    public MyStorySummaryResDto toSummaryResDto(Story story) {
+    public MyStorySummaryResDto toSummaryResDto(Story story, String thumbnailUrl) {
         return new MyStorySummaryResDto(
                 story.getId(),
                 story.getTitle(),
                 story.getPetName(),
                 story.getStatus(),
+                thumbnailUrl,
+                story.getViewCount(),
                 story.getLikeCount(),
                 story.getCreatedAt());
     }
@@ -68,10 +70,6 @@ public class MyGardenMapper {
                 notification.getContent(),
                 notification.isRead(),
                 notification.getCreatedAt());
-    }
-
-    public PageResDto<MyStorySummaryResDto> toMyStoryPageResDto(Page<Story> page) {
-        return PageResDto.from(page.map(this::toSummaryResDto));
     }
 
     public PageResDto<ReceivedLikeResDto> toReceivedLikePageResDto(Page<StoryLike> page) {

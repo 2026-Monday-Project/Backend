@@ -14,4 +14,6 @@ public interface StoryViewRepository extends JpaRepository<StoryView, Long> {
             + "VALUES (:storyId, :guestKey, :now, :now)", nativeQuery = true)
     int insertIgnoreByGuest(@Param("storyId") Long storyId, @Param("guestKey") String guestKey,
                             @Param("now") LocalDateTime now);
+
+    long deleteByStory_Id(Long storyId);
 }
