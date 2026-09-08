@@ -3,7 +3,6 @@ package com.likelion.monday.domain.admin.service;
 import com.likelion.monday.domain.account.entity.Account;
 import com.likelion.monday.domain.account.exception.AccountErrorCode;
 import com.likelion.monday.domain.account.repository.AccountRepository;
-import com.likelion.monday.domain.admin.constant.NotificationTemplate;
 import com.likelion.monday.domain.admin.constant.StoryStatusFilter;
 import com.likelion.monday.domain.admin.dto.AdminStoryCountResDto;
 import com.likelion.monday.domain.admin.dto.AdminStoryDetailResDto;
@@ -15,8 +14,9 @@ import com.likelion.monday.domain.admin.dto.NotificationSendResDto;
 import com.likelion.monday.domain.admin.dto.StoryReviewReqDto;
 import com.likelion.monday.domain.admin.exception.AdminErrorCode;
 import com.likelion.monday.domain.admin.mapper.AdminStoryMapper;
+import com.likelion.monday.domain.notification.constant.NotificationTemplate;
 import com.likelion.monday.domain.notification.entity.Notification;
-import com.likelion.monday.domain.notification.repository.NotificationRepository;
+import com.likelion.monday.domain.notification.service.NotificationService;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryImage;
 import com.likelion.monday.domain.story.entity.StoryStatus;
@@ -46,7 +46,7 @@ public class AdminStoryService {
     private final StoryRepository storyRepository;
     private final StoryImageRepository storyImageRepository;
     private final AccountRepository accountRepository;
-    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
     private final AdminStoryMapper adminStoryMapper;
 
     // 관리자 메인의 현황 카드에 쓰인다. 데이터가 없으면 0으로 내려간다.
@@ -132,11 +132,8 @@ public class AdminStoryService {
         Story story = findReviewedStory(storyId);
         Account account = findAccount(story.getAccountId());
 
-        Notification notification = notificationRepository.save(Notification.builder()
-                .accountId(account.getId())
-                .title(request.title())
-                .content(request.content())
-                .build());
+        Notification notification = notificationService.send(
+                account.getId(), request.title(), request.content());
 
         return new NotificationSendResDto(
                 notification.getId(),
