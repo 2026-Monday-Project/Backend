@@ -3,6 +3,8 @@ package com.likelion.monday.domain.story.service;
 import com.likelion.monday.domain.account.entity.Account;
 import com.likelion.monday.domain.account.exception.AccountErrorCode;
 import com.likelion.monday.domain.account.repository.AccountRepository;
+import com.likelion.monday.domain.notification.constant.NotificationTemplate;
+import com.likelion.monday.domain.notification.service.NotificationService;
 import com.likelion.monday.domain.story.constant.StorySort;
 import com.likelion.monday.domain.story.dto.StoryCardResDto;
 import com.likelion.monday.domain.story.dto.StoryCreateReqDto;
@@ -28,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -53,6 +56,7 @@ public class StoryService {
     private final StoryViewRepository storyViewRepository;
     private final StoryLikeRepository storyLikeRepository;
     private final AccountRepository accountRepository;
+    private final NotificationService notificationService;
     private final StoryMapper storyMapper;
     private final ImageStorage imageStorage;
 
@@ -124,9 +128,19 @@ public class StoryService {
         List<MultipartFile> newImages = filterEmptyFiles(images);
         validateImages(newImages, 0);
 
-        Account account = findOrCreateAccount(request.email(), request.nickname());
+        Optional<Account> savedAccount = accountRepository.findByEmail(request.email());
+        Account account = savedAccount
+                .map(found -> updateNicknameIfChanged(found, request.nickname()))
+                .orElseGet(() -> createAccount(request.email(), request.nickname()));
+
         Story story = storyRepository.save(storyMapper.toEntity(request, account.getId()));
         List<StoryImageResDto> savedImages = uploadImages(story, newImages, 0);
+
+        // 계정이 이번에 처음 만들어진 경우에만 보내, 환영 알림이 계정당 한 번만 쌓이게 한다.
+        if (savedAccount.isEmpty()) {
+            notificationService.send(account.getId(), NotificationTemplate.WELCOME);
+        }
+        notificationService.send(account.getId(), NotificationTemplate.STORY_SUBMITTED);
 
         return storyMapper.toWriteResDto(story, account.getNickname(), savedImages);
     }
@@ -218,12 +232,6 @@ public class StoryService {
         if (deletedCount > 0) {
             storyRepository.decreaseLikeCount(storyId);
         }
-    }
-
-    private Account findOrCreateAccount(String email, String nickname) {
-        return accountRepository.findByEmail(email)
-                .map(account -> updateNicknameIfChanged(account, nickname))
-                .orElseGet(() -> createAccount(email, nickname));
     }
 
     // 같은 이메일로 다시 사연을 보낼 때 닉네임을 바꿨다면 계정 닉네임도 함께 갱신한다.
