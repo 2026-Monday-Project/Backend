@@ -124,25 +124,47 @@ public class StoryService {
      * 이메일은 계정 식별자이므로 처음 보는 이메일이면 계정을 만들고, 이미 있으면 그 계정에 사연을 하나 더 추가한다.
      * 제출된 사연은 운영진 검토 전이므로 PENDING(검토중) 상태로 저장된다.
      */
-    public StoryWriteResDto createStory(StoryCreateReqDto request, List<MultipartFile> images) {
+    public StoryWriteResDto createStory(Long accountId, StoryCreateReqDto request, List<MultipartFile> images) {
         List<MultipartFile> newImages = filterEmptyFiles(images);
         validateImages(newImages, 0);
 
-        Optional<Account> savedAccount = accountRepository.findByEmail(request.email());
-        Account account = savedAccount
-                .map(found -> updateNicknameIfChanged(found, request.nickname()))
-                .orElseGet(() -> createAccount(request.email(), request.nickname()));
+        Account account;
+        boolean newAccount = false;
+        if (accountId == null) {
+            // 비로그인 작성은 이메일로 계정을 찾거나 새로 만든다.
+            if (isBlank(request.email()) || isBlank(request.nickname())) {
+                throw new CustomException(StoryErrorCode.WRITER_INFO_REQUIRED);
+            }
+
+            Optional<Account> savedAccount = accountRepository.findByEmail(request.email());
+            newAccount = savedAccount.isEmpty();
+            account = savedAccount
+                    .map(found -> updateNicknameIfChanged(found, request.nickname()))
+                    .orElseGet(() -> createAccount(request.email(), request.nickname()));
+        } else {
+            // 로그인 작성은 토큰의 계정을 그대로 쓰므로 본문의 이메일·닉네임을 보지 않는다.
+            account = findAccount(accountId);
+        }
 
         Story story = storyRepository.save(storyMapper.toEntity(request, account.getId()));
         List<StoryImageResDto> savedImages = uploadImages(story, newImages, 0);
 
         // 계정이 이번에 처음 만들어진 경우에만 보내, 환영 알림이 계정당 한 번만 쌓이게 한다.
-        if (savedAccount.isEmpty()) {
+        if (newAccount) {
             notificationService.send(account.getId(), NotificationTemplate.WELCOME);
         }
         notificationService.send(account.getId(), NotificationTemplate.STORY_SUBMITTED);
 
         return storyMapper.toWriteResDto(story, account.getNickname(), savedImages);
+    }
+
+    private Account findAccount(Long accountId) {
+        return accountRepository.findById(accountId)
+                .orElseThrow(() -> new CustomException(AccountErrorCode.ACCOUNT_NOT_FOUND));
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     /**

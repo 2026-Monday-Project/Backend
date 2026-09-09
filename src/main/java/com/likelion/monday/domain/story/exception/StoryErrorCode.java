@@ -13,7 +13,8 @@ public enum StoryErrorCode implements ErrorCode {
     STORY_IMAGE_NOT_FOUND(HttpStatus.BAD_REQUEST, "S004", "해당 사연에 존재하지 않는 사진입니다."),
     IMAGE_COUNT_EXCEEDED(HttpStatus.BAD_REQUEST, "S005", "사진은 최대 5장까지 첨부할 수 있습니다."),
     INVALID_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "S006", "이미지 파일만 첨부할 수 있습니다."),
-    NICKNAME_DUPLICATED(HttpStatus.CONFLICT, "S007", "이미 사용 중인 닉네임입니다.");
+    NICKNAME_DUPLICATED(HttpStatus.CONFLICT, "S007", "이미 사용 중인 닉네임입니다."),
+    WRITER_INFO_REQUIRED(HttpStatus.BAD_REQUEST, "S008", "이메일과 닉네임을 입력해 주세요.");
 
     private final HttpStatus status;
     private final String code;
