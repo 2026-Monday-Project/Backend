@@ -2,6 +2,7 @@ package com.likelion.monday.domain.mygarden.mapper;
 
 import com.likelion.monday.domain.mygarden.dto.*;
 import com.likelion.monday.domain.notification.entity.Notification;
+import com.likelion.monday.domain.story.dto.StoryImageResDto;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryLike;
 import java.util.List;
@@ -37,7 +38,7 @@ public class MyGardenMapper {
                 like.getCreatedAt());
     }
 
-    public MyStoryDetailResDto toDetailResDto(Story story, List<String> imageUrls) {
+    public MyStoryDetailResDto toDetailResDto(Story story, List<StoryImageResDto> images) {
         return new MyStoryDetailResDto(
                 story.getId(),
                 story.getTitle(),
@@ -50,7 +51,7 @@ public class MyGardenMapper {
                 story.getLikeCount(),
                 story.isIntroduceConsent(),
                 story.isSnsConsent(),
-                imageUrls,
+                images,
                 story.getCreatedAt(),
                 story.getUpdatedAt());
     }

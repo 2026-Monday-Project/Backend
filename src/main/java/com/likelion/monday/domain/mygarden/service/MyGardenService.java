@@ -5,6 +5,7 @@ import com.likelion.monday.domain.mygarden.exception.MyGardenErrorCode;
 import com.likelion.monday.domain.mygarden.mapper.MyGardenMapper;
 import com.likelion.monday.domain.notification.entity.Notification;
 import com.likelion.monday.domain.notification.repository.NotificationRepository;
+import com.likelion.monday.domain.story.dto.StoryImageResDto;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryImage;
 import com.likelion.monday.domain.story.entity.StoryStatus;
@@ -99,11 +100,12 @@ public class MyGardenService {
                 .filter(found -> found.isOwnedBy(accountId))
                 .orElseThrow(() -> new CustomException(MyGardenErrorCode.STORY_NOT_FOUND));
 
-        List<String> imageUrls = storyImageRepository.findByStory_IdOrderBySortOrderAsc(storyId).stream()
-                .map(StoryImage::getImageUrl)
+        // 수정 화면에서 남길 사진을 지정하려면 URL뿐 아니라 사진 ID가 필요하다.
+        List<StoryImageResDto> images = storyImageRepository.findByStory_IdOrderBySortOrderAsc(storyId).stream()
+                .map(StoryImageResDto::from)
                 .toList();
 
-        return myGardenMapper.toDetailResDto(story, imageUrls);
+        return myGardenMapper.toDetailResDto(story, images);
     }
 
     @Transactional
