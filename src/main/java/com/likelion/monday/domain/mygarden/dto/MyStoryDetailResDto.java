@@ -1,5 +1,6 @@
 package com.likelion.monday.domain.mygarden.dto;
 
+import com.likelion.monday.domain.story.dto.StoryImageResDto;
 import com.likelion.monday.domain.story.entity.StoryStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -41,8 +42,8 @@ public record MyStoryDetailResDto(
         @Schema(description = "[선택] SNS·홍보물 활용 동의 현황")
         boolean snsConsent,
 
-        @Schema(description = "노출 순서대로 정렬된 사진 URL 목록")
-        List<String> imageUrls,
+        @Schema(description = "노출 순서대로 정렬된 첨부 사진 목록. 사연 수정 요청의 keepImageIds에 여기 imageId를 사용한다.")
+        List<StoryImageResDto> images,
 
         @Schema(description = "제출 일시")
         LocalDateTime createdAt,
