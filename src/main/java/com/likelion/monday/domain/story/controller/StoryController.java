@@ -84,9 +84,10 @@ public class StoryController implements StoryControllerDocs {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<StoryWriteResDto> createStory(
+            @OptionalLoginAccountId Long accountId,
             @Valid @RequestPart("request") StoryCreateReqDto request,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
-        return ApiResponse.success(storyService.createStory(request, images));
+        return ApiResponse.success(storyService.createStory(accountId, request, images));
     }
 
     @Override

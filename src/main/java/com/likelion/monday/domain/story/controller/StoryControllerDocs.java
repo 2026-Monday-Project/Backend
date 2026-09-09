@@ -27,11 +27,14 @@ public interface StoryControllerDocs {
                     사연 작성 STEP 1~3에서 입력한 값과 사진을 한 번에 제출한다.
                     multipart/form-data로 request(JSON) 파트와 images(파일) 파트를 함께 보낸다.
                     사진은 최대 5장까지 첨부할 수 있고, 제출 시점에 일괄 업로드된다.
-                    처음 보는 이메일이면 계정이 생성되고, 이미 있는 이메일이면 그 계정에 사연이 추가된다.
+                    로그인은 선택이다. 토큰을 보내면 그 계정으로 등록되며 이메일과 닉네임은 보내지 않아도 된다.
+                    토큰 없이 보내면 이메일과 닉네임이 필요하고, 처음 보는 이메일이면 계정이 새로 만들어진다.
                     제출된 사연은 운영진 검토 전이므로 PENDING(검토중) 상태로 저장된다.
-                    """
+                    """,
+            security = @SecurityRequirement(name = "bearerAuth")
     )
-    ApiResponse<StoryWriteResDto> createStory(StoryCreateReqDto request, List<MultipartFile> images);
+    ApiResponse<StoryWriteResDto> createStory(@Parameter(hidden = true) Long accountId,
+                                              StoryCreateReqDto request, List<MultipartFile> images);
 
     @Operation(
             summary = "사연 수정",

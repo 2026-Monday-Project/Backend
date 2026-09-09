@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Size;
 /**
  * 사연 작성 STEP 1~3에서 입력한 값을 한 번에 받는다.
  * 사진은 multipart의 images 파트로 따로 전달되며, 제출 시점에 일괄 업로드된다.
+ * 이메일과 닉네임은 비로그인 작성일 때만 필요하다. 로그인 상태면 토큰의 계정을 사용하므로 서비스에서 무시한다.
  */
 @Schema(description = "사연 작성 요청")
 public record StoryCreateReqDto(
@@ -22,8 +23,7 @@ public record StoryCreateReqDto(
         @Pattern(regexp = "^[가-힣a-zA-Z0-9]{1,10}$", message = "닉네임은 한글, 영문, 숫자로 10자 이내로 입력해 주세요.")
         String nickname,
 
-        @Schema(description = "검토 결과를 안내받을 이메일", example = "monday@example.com")
-        @NotBlank(message = "이메일을 입력해 주세요.")
+        @Schema(description = "검토 결과를 안내받을 이메일. 로그인 상태로 작성하면 생략한다.", example = "monday@example.com")
         @Email(message = "이메일 형식이 올바르지 않습니다.")
         @Size(max = 100, message = "이메일은 100자 이내로 입력해 주세요.")
         String email,
