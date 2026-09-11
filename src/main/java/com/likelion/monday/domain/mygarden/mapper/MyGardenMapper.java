@@ -59,6 +59,7 @@ public class MyGardenMapper {
         return new NotificationSummaryResDto(
                 notification.getId(),
                 notification.getTitle(),
+                notification.getContent(),
                 notification.isRead(),
                 notification.getCreatedAt());
     }
