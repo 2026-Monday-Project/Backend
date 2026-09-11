@@ -12,6 +12,9 @@ public record NotificationSummaryResDto(
         @Schema(description = "알림 제목", example = "사연이 정원에 공개되었어요")
         String title,
 
+        @Schema(description = "알림 내용")
+        String content,
+
         @Schema(description = "읽음 여부", example = "false")
         boolean isRead,
 
