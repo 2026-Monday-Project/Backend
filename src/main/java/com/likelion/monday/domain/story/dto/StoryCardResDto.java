@@ -15,6 +15,12 @@ public record StoryCardResDto(
         @Schema(description = "반려동물 이름", example = "머고")
         String petName,
 
+        @Schema(description = "반려동물 종류", example = "고양이")
+        String petType,
+
+        @Schema(description = "반려동물 나이", example = "3")
+        Integer petAge,
+
         @Schema(description = "사연 제목", example = "우리 집 귀염둥이에게")
         String title,
 

@@ -37,6 +37,8 @@ public class StoryMapper {
                 story.getId(),
                 thumbnailUrl,
                 story.getPetName(),
+                story.getPetType(),
+                story.getPetAge(),
                 story.getTitle(),
                 nickname,
                 story.getCreatedAt(),
