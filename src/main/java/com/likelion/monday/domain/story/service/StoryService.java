@@ -96,7 +96,7 @@ public class StoryService {
                 .filter(s -> s.getStatus() == StoryStatus.PUBLIC)
                 .orElseThrow(() -> new CustomException(StoryErrorCode.STORY_NOT_FOUND));
 
-        boolean viewed = recordView(story, guestKey);
+        boolean viewed = recordView(story, accountId, guestKey);
         int viewCount = viewed ? story.getViewCount() + 1 : story.getViewCount();
 
         Account account = accountRepository.findById(story.getAccountId())
@@ -336,10 +336,13 @@ public class StoryService {
 
     /**
      * 조회 기록이 없을 때만 저장하고 조회수를 올린다.
+     * 로그인 계정이면 계정 기준으로, 비로그인이면 guest_key 기준으로 중복 여부를 판단한다.
      * INSERT IGNORE로 exists 체크와 삽입을 한 번에 처리해, 동시 요청이 와도 예외 없이 한쪽만 반영된다.
      */
-    private boolean recordView(Story story, String guestKey) {
-        int inserted = storyViewRepository.insertIgnoreByGuest(story.getId(), guestKey, LocalDateTime.now());
+    private boolean recordView(Story story, Long accountId, String guestKey) {
+        int inserted = accountId != null
+                ? storyViewRepository.insertIgnoreByAccount(story.getId(), accountId, LocalDateTime.now())
+                : storyViewRepository.insertIgnoreByGuest(story.getId(), guestKey, LocalDateTime.now());
         if (inserted > 0) {
             storyRepository.increaseViewCount(story.getId());
             return true;

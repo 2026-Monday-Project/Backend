@@ -10,6 +10,12 @@ import org.springframework.data.repository.query.Param;
 public interface StoryViewRepository extends JpaRepository<StoryView, Long> {
 
     @Modifying
+    @Query(value = "INSERT IGNORE INTO story_view (story_id, account_id, created_at, updated_at) "
+            + "VALUES (:storyId, :accountId, :now, :now)", nativeQuery = true)
+    int insertIgnoreByAccount(@Param("storyId") Long storyId, @Param("accountId") Long accountId,
+                              @Param("now") LocalDateTime now);
+
+    @Modifying
     @Query(value = "INSERT IGNORE INTO story_view (story_id, guest_key, created_at, updated_at) "
             + "VALUES (:storyId, :guestKey, :now, :now)", nativeQuery = true)
     int insertIgnoreByGuest(@Param("storyId") Long storyId, @Param("guestKey") String guestKey,
