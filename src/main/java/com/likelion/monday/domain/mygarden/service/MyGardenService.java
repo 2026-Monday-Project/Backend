@@ -85,7 +85,7 @@ public class MyGardenService {
     // 받은 공감: 내가 쓴 사연들에 달린 공감. 디자인상 정렬 옵션 없이 항상 최신순(공감 시각 기준)이다.
     public PageResDto<ReceivedLikeResDto> getReceivedLikes(Long accountId, int page, int size) {
         Page<StoryLike> likes =
-                storyLikeRepository.findAllByStory_AccountId(accountId, pageableForLikes(page, size, MyGardenSort.LATEST));
+                storyLikeRepository.findAllByStory_AccountId(accountId, pageable(page, size, MyGardenSort.LATEST));
         Map<Long, String> thumbnails = findLikeThumbnails(likes.getContent());
 
         List<ReceivedLikeResDto> content = likes.getContent().stream()
