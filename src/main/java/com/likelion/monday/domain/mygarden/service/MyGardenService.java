@@ -82,7 +82,7 @@ public class MyGardenService {
         return new MyActivitySummaryResDto(sentStoryCount, receivedLikeCount, likedStoryCount);
     }
 
-    // 받은 공감: 내가 쓴 사연들에 달린 공감. 디자인상 정렬 옵션 없이 항상 최신순이다.
+    // 받은 공감: 내가 쓴 사연들에 달린 공감. 디자인상 정렬 옵션 없이 항상 최신순(공감 시각 기준)이다.
     public PageResDto<ReceivedLikeResDto> getReceivedLikes(Long accountId, int page, int size) {
         Page<StoryLike> likes =
                 storyLikeRepository.findAllByStory_AccountId(accountId, pageableForLikes(page, size, MyGardenSort.LATEST));
@@ -200,30 +200,30 @@ public class MyGardenService {
         return findThumbnails(stories);
     }
 
-    // 목록 API 전반에서 쓰는 페이지 요청 생성. sort에 따라 정렬 기준이 달라지며, id를 보조 기준으로 더해 순서를 보장한다.
+    // 내 사연 목록 정렬. Story 엔티티 필드에 바로 접근한다.
     private Pageable pageable(int page, int size, MyGardenSort sort) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
+        Sort resolvedSort = switch (sort) {
+            case VIEWS -> Sort.by(Sort.Direction.DESC, "viewCount").and(Sort.by(Sort.Direction.DESC, "id"));
+            case LIKES -> Sort.by(Sort.Direction.DESC, "likeCount").and(Sort.by(Sort.Direction.DESC, "id"));
+            case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
+        };
 
-        return PageRequest.of(safePage, safeSize, toSort(sort, ""));
+        return PageRequest.of(safePage, safeSize, resolvedSort);
     }
 
-    // 공감 목록(StoryLike)은 사연의 조회수/공감수로 정렬해야 하므로, 엔티티 관계 경로를 접두사로 받는다.
+    // 공감 목록(StoryLike) 정렬. 최신순은 "공감을 남긴 시각"(StoryLike.createdAt) 기준이고,
+    // 조회순/공감순은 사연 자체의 속성이라 story.필드를 거쳐 접근한다.
     private Pageable pageableForLikes(int page, int size, MyGardenSort sort) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
-
-        return PageRequest.of(safePage, safeSize, toSort(sort, "story."));
-    }
-
-    private Sort toSort(MyGardenSort sort, String prefix) {
-        String field = switch (sort) {
-            case VIEWS -> prefix + "viewCount";
-            case LIKES -> prefix + "likeCount";
-            case LATEST -> prefix + "createdAt";
+        Sort resolvedSort = switch (sort) {
+            case VIEWS -> Sort.by(Sort.Direction.DESC, "story.viewCount").and(Sort.by(Sort.Direction.DESC, "story.id"));
+            case LIKES -> Sort.by(Sort.Direction.DESC, "story.likeCount").and(Sort.by(Sort.Direction.DESC, "story.id"));
+            case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
         };
 
-        return Sort.by(Sort.Direction.DESC, field)
-                .and(Sort.by(Sort.Direction.DESC, prefix.isEmpty() ? "id" : prefix + "id"));
+        return PageRequest.of(safePage, safeSize, resolvedSort);
     }
 }
