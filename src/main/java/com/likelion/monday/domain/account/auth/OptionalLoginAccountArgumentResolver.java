@@ -39,8 +39,11 @@ public class OptionalLoginAccountArgumentResolver implements HandlerMethodArgume
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         String header = webRequest.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header == null || !header.startsWith(BEARER_PREFIX)) {
+        if (header == null) {
             return null;
+        }
+        if (!header.startsWith(BEARER_PREFIX)) {
+            throw new CustomException(CommonErrorCode.UNAUTHORIZED);
         }
 
         String token = header.substring(BEARER_PREFIX.length());
