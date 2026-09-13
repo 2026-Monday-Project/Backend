@@ -1,6 +1,7 @@
 package com.likelion.monday.domain.mygarden.controller;
 
 import com.likelion.monday.domain.account.auth.LoginAccountId;
+import com.likelion.monday.domain.mygarden.constant.MyGardenSort;
 import com.likelion.monday.domain.mygarden.dto.*;
 import com.likelion.monday.domain.mygarden.service.MyGardenService;
 import com.likelion.monday.domain.story.entity.StoryStatus;
@@ -25,9 +26,10 @@ public class MyGardenController implements MyGardenControllerDocs {
     public ApiResponse<PageResDto<MyStorySummaryResDto>> getMyStories(
             @LoginAccountId Long accountId,
             @RequestParam(required = false) StoryStatus status,
+            @RequestParam(defaultValue = "LATEST") MyGardenSort sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(myGardenService.getMyStories(accountId, status, page, size));
+        return ApiResponse.success(myGardenService.getMyStories(accountId, status, sort, page, size));
     }
 
     @Override
@@ -49,9 +51,10 @@ public class MyGardenController implements MyGardenControllerDocs {
     @GetMapping("/liked-stories")
     public ApiResponse<PageResDto<LikedStoryResDto>> getLikedStories(
             @LoginAccountId Long accountId,
+            @RequestParam(defaultValue = "LATEST") MyGardenSort sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(myGardenService.getLikedStories(accountId, page, size));
+        return ApiResponse.success(myGardenService.getLikedStories(accountId, sort, page, size));
     }
 
     @Override

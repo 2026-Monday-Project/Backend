@@ -1,5 +1,6 @@
 package com.likelion.monday.domain.mygarden.service;
 
+import com.likelion.monday.domain.mygarden.constant.MyGardenSort;
 import com.likelion.monday.domain.mygarden.dto.*;
 import com.likelion.monday.domain.mygarden.exception.MyGardenErrorCode;
 import com.likelion.monday.domain.mygarden.mapper.MyGardenMapper;
@@ -8,6 +9,7 @@ import com.likelion.monday.domain.notification.repository.NotificationRepository
 import com.likelion.monday.domain.story.dto.StoryImageResDto;
 import com.likelion.monday.domain.story.entity.Story;
 import com.likelion.monday.domain.story.entity.StoryImage;
+import com.likelion.monday.domain.story.entity.StoryLike;
 import com.likelion.monday.domain.story.entity.StoryStatus;
 import com.likelion.monday.domain.story.repository.StoryImageRepository;
 import com.likelion.monday.domain.story.repository.StoryLikeRepository;
@@ -52,8 +54,9 @@ public class MyGardenService {
     }
 
     // 내 사연 전체/필터 조회. status가 null이면 전체로 간주한다. 보낸 사연 목록으로도 함께 사용한다.
-    public PageResDto<MyStorySummaryResDto> getMyStories(Long accountId, StoryStatus status, int page, int size) {
-        Pageable pageable = pageable(page, size);
+    public PageResDto<MyStorySummaryResDto> getMyStories(
+            Long accountId, StoryStatus status, MyGardenSort sort, int page, int size) {
+        Pageable pageable = pageable(page, size, sort);
         Page<Story> stories = status == null
                 ? storyRepository.findAllByAccountId(accountId, pageable)
                 : storyRepository.findAllByAccountIdAndStatus(accountId, status, pageable);
@@ -79,19 +82,39 @@ public class MyGardenService {
         return new MyActivitySummaryResDto(sentStoryCount, receivedLikeCount, likedStoryCount);
     }
 
-    // 받은 공감: 내가 쓴 사연들에 달린 공감
+    // 받은 공감: 내가 쓴 사연들에 달린 공감. 디자인상 정렬 옵션 없이 항상 최신순이다.
     public PageResDto<ReceivedLikeResDto> getReceivedLikes(Long accountId, int page, int size) {
-        Page<com.likelion.monday.domain.story.entity.StoryLike> likes =
-                storyLikeRepository.findAllByStory_AccountId(accountId, pageable(page, size));
+        Page<StoryLike> likes =
+                storyLikeRepository.findAllByStory_AccountId(accountId, pageableForLikes(page, size, MyGardenSort.LATEST));
+        Map<Long, String> thumbnails = findLikeThumbnails(likes.getContent());
 
-        return myGardenMapper.toReceivedLikePageResDto(likes);
+        List<ReceivedLikeResDto> content = likes.getContent().stream()
+                .map(like -> myGardenMapper.toReceivedLikeResDto(like, thumbnails.get(like.getStory().getId())))
+                .toList();
+
+        return new PageResDto<>(
+                content,
+                likes.getNumber(),
+                likes.getSize(),
+                likes.getTotalElements(),
+                likes.getTotalPages());
     }
 
-    public PageResDto<LikedStoryResDto> getLikedStories(Long accountId, int page, int size) {
-        Page<com.likelion.monday.domain.story.entity.StoryLike> likes =
-                storyLikeRepository.findAllByAccountId(accountId, pageable(page, size));
+    public PageResDto<LikedStoryResDto> getLikedStories(Long accountId, MyGardenSort sort, int page, int size) {
+        Page<StoryLike> likes =
+                storyLikeRepository.findAllByAccountId(accountId, pageableForLikes(page, size, sort));
+        Map<Long, String> thumbnails = findLikeThumbnails(likes.getContent());
 
-        return myGardenMapper.toLikedStoryPageResDto(likes);
+        List<LikedStoryResDto> content = likes.getContent().stream()
+                .map(like -> myGardenMapper.toLikedStoryResDto(like, thumbnails.get(like.getStory().getId())))
+                .toList();
+
+        return new PageResDto<>(
+                content,
+                likes.getNumber(),
+                likes.getSize(),
+                likes.getTotalElements(),
+                likes.getTotalPages());
     }
 
     // 존재하지 않는 사연과 남의 사연을 같은 응답(404)으로 처리해, 사연 존재 여부가 외부로 새어나가지 않게 한다.
@@ -133,7 +156,8 @@ public class MyGardenService {
     }
 
     public PageResDto<NotificationSummaryResDto> getNotifications(Long accountId, int page, int size) {
-        Page<Notification> notifications = notificationRepository.findAllByAccountId(accountId, pageable(page, size));
+        Page<Notification> notifications =
+                notificationRepository.findAllByAccountId(accountId, pageable(page, size, MyGardenSort.LATEST));
 
         return myGardenMapper.toNotificationPageResDto(notifications);
     }
@@ -166,12 +190,40 @@ public class MyGardenService {
                         (first, second) -> first));
     }
 
-    // 목록 API 전반에서 쓰는 페이지 요청 생성. 최신순 정렬에 id를 보조 기준으로 더해 순서를 보장한다.
-    private Pageable pageable(int page, int size) {
+    // 공감 목록(받은 공감/공감한 사연)에서 사연 대표 사진을 한 번에 묶어 가져온다.
+    private Map<Long, String> findLikeThumbnails(List<StoryLike> likes) {
+        List<Story> stories = likes.stream()
+                .map(StoryLike::getStory)
+                .distinct()
+                .toList();
+
+        return findThumbnails(stories);
+    }
+
+    // 목록 API 전반에서 쓰는 페이지 요청 생성. sort에 따라 정렬 기준이 달라지며, id를 보조 기준으로 더해 순서를 보장한다.
+    private Pageable pageable(int page, int size, MyGardenSort sort) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
 
-        return PageRequest.of(safePage, safeSize, sort);
+        return PageRequest.of(safePage, safeSize, toSort(sort, ""));
+    }
+
+    // 공감 목록(StoryLike)은 사연의 조회수/공감수로 정렬해야 하므로, 엔티티 관계 경로를 접두사로 받는다.
+    private Pageable pageableForLikes(int page, int size, MyGardenSort sort) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
+
+        return PageRequest.of(safePage, safeSize, toSort(sort, "story."));
+    }
+
+    private Sort toSort(MyGardenSort sort, String prefix) {
+        String field = switch (sort) {
+            case VIEWS -> prefix + "viewCount";
+            case LIKES -> prefix + "likeCount";
+            case LATEST -> prefix + "createdAt";
+        };
+
+        return Sort.by(Sort.Direction.DESC, field)
+                .and(Sort.by(Sort.Direction.DESC, prefix.isEmpty() ? "id" : prefix + "id"));
     }
 }
