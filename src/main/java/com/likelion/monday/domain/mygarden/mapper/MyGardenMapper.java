@@ -24,18 +24,33 @@ public class MyGardenMapper {
                 story.getCreatedAt());
     }
 
-    public ReceivedLikeResDto toReceivedLikeResDto(StoryLike like) {
+    public ReceivedLikeResDto toReceivedLikeResDto(StoryLike like, String thumbnailUrl) {
+        Story story = like.getStory();
         return new ReceivedLikeResDto(
                 like.getId(),
-                like.getStory().getId(),
-                like.getStory().getTitle());
+                story.getId(),
+                thumbnailUrl,
+                story.getTitle(),
+                story.getPetName(),
+                story.getPetType(),
+                story.getPetAge(),
+                story.getViewCount(),
+                story.getLikeCount(),
+                story.getCreatedAt());
     }
 
-    public LikedStoryResDto toLikedStoryResDto(StoryLike like) {
+    public LikedStoryResDto toLikedStoryResDto(StoryLike like, String thumbnailUrl) {
+        Story story = like.getStory();
         return new LikedStoryResDto(
-                like.getStory().getId(),
-                like.getStory().getTitle(),
-                like.getCreatedAt());
+                story.getId(),
+                thumbnailUrl,
+                story.getTitle(),
+                story.getPetName(),
+                story.getPetType(),
+                story.getPetAge(),
+                story.getViewCount(),
+                story.getLikeCount(),
+                story.getCreatedAt());
     }
 
     public MyStoryDetailResDto toDetailResDto(Story story, List<StoryImageResDto> images) {
@@ -72,14 +87,6 @@ public class MyGardenMapper {
                 notification.getContent(),
                 notification.isRead(),
                 notification.getCreatedAt());
-    }
-
-    public PageResDto<ReceivedLikeResDto> toReceivedLikePageResDto(Page<StoryLike> page) {
-        return PageResDto.from(page.map(this::toReceivedLikeResDto));
-    }
-
-    public PageResDto<LikedStoryResDto> toLikedStoryPageResDto(Page<StoryLike> page) {
-        return PageResDto.from(page.map(this::toLikedStoryResDto));
     }
 
     public PageResDto<NotificationSummaryResDto> toNotificationPageResDto(Page<Notification> page) {

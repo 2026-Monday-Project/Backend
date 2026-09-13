@@ -1,5 +1,6 @@
 package com.likelion.monday.domain.mygarden.controller;
 
+import com.likelion.monday.domain.mygarden.constant.MyGardenSort;
 import com.likelion.monday.domain.mygarden.dto.*;
 import com.likelion.monday.domain.story.entity.StoryStatus;
 import com.likelion.monday.global.response.ApiResponse;
@@ -22,11 +23,12 @@ public interface MyGardenControllerDocs {
 
     @Operation(
             summary = "내 사연 전체/필터 조회 (페이지네이션)",
-            description = "status를 생략하면 전체(ALL), 지정하면 검토중/공개/비공개로 필터링해 최신순으로 조회한다.",
+            description = "status를 생략하면 전체(ALL), 지정하면 검토중/공개/비공개로 필터링해 조회한다. "
+                    + "sort로 최신순(LATEST)/조회순(VIEWS)/공감순(LIKES)을 선택할 수 있다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     ApiResponse<PageResDto<MyStorySummaryResDto>> getMyStories(
-            @Parameter(hidden = true) Long accountId, StoryStatus status, int page, int size);
+            @Parameter(hidden = true) Long accountId, StoryStatus status, MyGardenSort sort, int page, int size);
 
     @Operation(
             summary = "내 정원 홈 - 활동 요약 조회",
@@ -45,11 +47,12 @@ public interface MyGardenControllerDocs {
 
     @Operation(
             summary = "공감한 사연 조회 (페이지네이션)",
-            description = "내가 다른 사연에 남긴 공감을 최신순으로 조회한다.",
+            description = "내가 다른 사연에 남긴 공감을 조회한다. "
+                    + "sort로 최신순(LATEST)/조회순(VIEWS)/공감순(LIKES)을 선택할 수 있다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     ApiResponse<PageResDto<LikedStoryResDto>> getLikedStories(
-            @Parameter(hidden = true) Long accountId, int page, int size);
+            @Parameter(hidden = true) Long accountId, MyGardenSort sort, int page, int size);
 
     @Operation(
             summary = "내 사연 상세 조회",
