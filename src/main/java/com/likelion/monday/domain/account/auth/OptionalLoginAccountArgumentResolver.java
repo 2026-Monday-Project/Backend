@@ -3,6 +3,7 @@ package com.likelion.monday.domain.account.auth;
 import com.likelion.monday.domain.account.constant.AccountRole;
 import com.likelion.monday.global.exception.CommonErrorCode;
 import com.likelion.monday.global.exception.CustomException;
+import com.likelion.monday.global.jwt.JwtErrorCode;
 import com.likelion.monday.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
@@ -15,8 +16,10 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
  * {@link OptionalLoginAccountId}가 붙은 Long 파라미터에 로그인한 계정 id를 채운다.
- * Authorization 헤더가 없으면 null(비로그인)을 반환하고,
- * 헤더가 있는데 토큰이 유효하지 않으면 기존 로그인 API와 동일하게 인증 실패로 처리한다.
+ * Authorization 헤더가 없으면 null(비로그인)을 반환한다.
+ * 헤더가 있어도 토큰이 단순 만료(EXPIRED_TOKEN)된 경우에는 비로그인 사용자와 동일하게 처리한다.
+ * PUBLIC API를 대상으로 하므로, 로그인 여부와 무관하게 응답 가능해야 하기 때문이다.
+ * 다만 위조/형식 오류 등 그 외의 경우는 기존 로그인 API와 동일하게 인증 실패로 처리한다.
  */
 @Component
 @RequiredArgsConstructor
@@ -41,11 +44,17 @@ public class OptionalLoginAccountArgumentResolver implements HandlerMethodArgume
         }
 
         String token = header.substring(BEARER_PREFIX.length());
-        if (!AccountRole.USER.name().equals(jwtTokenProvider.getRole(token))) {
-            throw new CustomException(CommonErrorCode.UNAUTHORIZED);
+        try {
+            if (!AccountRole.USER.name().equals(jwtTokenProvider.getRole(token))) {
+                throw new CustomException(CommonErrorCode.UNAUTHORIZED);
+            }
+            return parseAccountId(token);
+        } catch (CustomException e) {
+            if (e.getErrorCode() == JwtErrorCode.EXPIRED_TOKEN) {
+                return null;
+            }
+            throw e;
         }
-
-        return parseAccountId(token);
     }
 
     private Long parseAccountId(String token) {
