@@ -45,7 +45,7 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
             + "JOIN story_like sl ON sl.story_id = s.id "
             + "WHERE s.account_id = :accountId AND s.status = :status "
             + "GROUP BY s.id "
-            + "ORDER BY MAX(sl.created_at) DESC",
+            + "ORDER BY MAX(sl.created_at) DESC, s.id DESC",
             countQuery = "SELECT COUNT(DISTINCT s.id) FROM story s "
                     + "JOIN story_like sl ON sl.story_id = s.id "
                     + "WHERE s.account_id = :accountId AND s.status = :status",
