@@ -82,22 +82,27 @@ public class MyGardenService {
         return new MyActivitySummaryResDto(sentStoryCount, receivedLikeCount, likedStoryCount);
     }
 
-    // 받은 공감: 내가 쓴 사연들에 달린 공감. 디자인상 정렬 옵션 없이 항상 최신순(공감 시각 기준)이다.
+    // 받은 공감: 내가 쓴 사연 중 공감을 1건 이상 받은 사연. PUBLIC 상태만 노출하고,
+    // 디자인상 정렬 옵션 없이 항상 최신순(가장 최근 공감 시각 기준)이며, 사연 단위로 묶어서 반환한다.
     public PageResDto<ReceivedLikeResDto> getReceivedLikes(Long accountId, int page, int size) {
-        Page<StoryLike> likes =
-                storyLikeRepository.findAllByStory_AccountId(accountId, pageable(page, size, MyGardenSort.LATEST));
-        Map<Long, String> thumbnails = findLikeThumbnails(likes.getContent());
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(safePage, safeSize);
 
-        List<ReceivedLikeResDto> content = likes.getContent().stream()
-                .map(like -> myGardenMapper.toReceivedLikeResDto(like, thumbnails.get(like.getStory().getId())))
+        Page<Story> stories = storyRepository.findStoriesReceivingLikes(
+                accountId, StoryStatus.PUBLIC.name(), pageable);
+        Map<Long, String> thumbnails = findThumbnails(stories.getContent());
+
+        List<ReceivedLikeResDto> content = stories.getContent().stream()
+                .map(story -> myGardenMapper.toReceivedLikeResDto(story, thumbnails.get(story.getId())))
                 .toList();
 
         return new PageResDto<>(
                 content,
-                likes.getNumber(),
-                likes.getSize(),
-                likes.getTotalElements(),
-                likes.getTotalPages());
+                stories.getNumber(),
+                stories.getSize(),
+                stories.getTotalElements(),
+                stories.getTotalPages());
     }
 
     public PageResDto<LikedStoryResDto> getLikedStories(Long accountId, MyGardenSort sort, int page, int size) {
