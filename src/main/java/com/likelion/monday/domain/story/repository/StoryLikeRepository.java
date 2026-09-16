@@ -2,6 +2,8 @@ package com.likelion.monday.domain.story.repository;
 
 import com.likelion.monday.domain.story.entity.StoryLike;
 import java.time.LocalDateTime;
+import com.likelion.monday.domain.story.entity.Story;
+import com.likelion.monday.domain.story.entity.StoryStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,8 +27,36 @@ public interface StoryLikeRepository extends JpaRepository<StoryLike, Long> {
     // 받은 공감 목록 (페이지네이션)
     Page<StoryLike> findAllByStory_AccountId(Long accountId, Pageable pageable);
 
-    // 공감한 사연 목록 (페이지네이션)
-    Page<StoryLike> findAllByAccountId(Long accountId, Pageable pageable);
+    /**
+     * 공감한 사연 목록: 정렬 기준별로 사연 단위(GROUP BY)로 묶어서 조회한다.
+     * PUBLIC 상태 사연만 노출한다 (검토 후 비공개 전환된 사연 제외).
+     */
+    @Query(value = "SELECT l.story FROM StoryLike l "
+            + "WHERE l.accountId = :accountId AND l.story.status = :status "
+            + "GROUP BY l.story "
+            + "ORDER BY MAX(l.createdAt) DESC, l.story.id DESC",
+            countQuery = "SELECT COUNT(DISTINCT l.story) FROM StoryLike l "
+                    + "WHERE l.accountId = :accountId AND l.story.status = :status")
+    Page<Story> findLikedStoriesOrderByLikedAtDesc(@Param("accountId") Long accountId,
+                                                   @Param("status") StoryStatus status, Pageable pageable);
+
+    @Query(value = "SELECT l.story FROM StoryLike l "
+            + "WHERE l.accountId = :accountId AND l.story.status = :status "
+            + "GROUP BY l.story "
+            + "ORDER BY l.story.viewCount DESC, l.story.id DESC",
+            countQuery = "SELECT COUNT(DISTINCT l.story) FROM StoryLike l "
+                    + "WHERE l.accountId = :accountId AND l.story.status = :status")
+    Page<Story> findLikedStoriesOrderByViewsDesc(@Param("accountId") Long accountId,
+                                                 @Param("status") StoryStatus status, Pageable pageable);
+
+    @Query(value = "SELECT l.story FROM StoryLike l "
+            + "WHERE l.accountId = :accountId AND l.story.status = :status "
+            + "GROUP BY l.story "
+            + "ORDER BY l.story.likeCount DESC, l.story.id DESC",
+            countQuery = "SELECT COUNT(DISTINCT l.story) FROM StoryLike l "
+                    + "WHERE l.accountId = :accountId AND l.story.status = :status")
+    Page<Story> findLikedStoriesOrderByLikesDesc(@Param("accountId") Long accountId,
+                                                 @Param("status") StoryStatus status, Pageable pageable);
 
     long deleteByStory_IdAndAccountId(Long storyId, Long accountId);
 

@@ -106,20 +106,27 @@ public class MyGardenService {
     }
 
     public PageResDto<LikedStoryResDto> getLikedStories(Long accountId, MyGardenSort sort, int page, int size) {
-        Page<StoryLike> likes =
-                storyLikeRepository.findAllByAccountId(accountId, pageableForLikes(page, size, sort));
-        Map<Long, String> thumbnails = findLikeThumbnails(likes.getContent());
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(safePage, safeSize);
 
-        List<LikedStoryResDto> content = likes.getContent().stream()
-                .map(like -> myGardenMapper.toLikedStoryResDto(like, thumbnails.get(like.getStory().getId())))
+        Page<Story> stories = switch (sort) {
+            case VIEWS -> storyLikeRepository.findLikedStoriesOrderByViewsDesc(accountId, StoryStatus.PUBLIC, pageable);
+            case LIKES -> storyLikeRepository.findLikedStoriesOrderByLikesDesc(accountId, StoryStatus.PUBLIC, pageable);
+            case LATEST -> storyLikeRepository.findLikedStoriesOrderByLikedAtDesc(accountId, StoryStatus.PUBLIC, pageable);
+        };
+        Map<Long, String> thumbnails = findThumbnails(stories.getContent());
+
+        List<LikedStoryResDto> content = stories.getContent().stream()
+                .map(story -> myGardenMapper.toLikedStoryResDto(story, thumbnails.get(story.getId())))
                 .toList();
 
         return new PageResDto<>(
                 content,
-                likes.getNumber(),
-                likes.getSize(),
-                likes.getTotalElements(),
-                likes.getTotalPages());
+                stories.getNumber(),
+                stories.getSize(),
+                stories.getTotalElements(),
+                stories.getTotalPages());
     }
 
     // 존재하지 않는 사연과 남의 사연을 같은 응답(404)으로 처리해, 사연 존재 여부가 외부로 새어나가지 않게 한다.
@@ -195,16 +202,6 @@ public class MyGardenService {
                         (first, second) -> first));
     }
 
-    // 공감 목록(받은 공감/공감한 사연)에서 사연 대표 사진을 한 번에 묶어 가져온다.
-    private Map<Long, String> findLikeThumbnails(List<StoryLike> likes) {
-        List<Story> stories = likes.stream()
-                .map(StoryLike::getStory)
-                .distinct()
-                .toList();
-
-        return findThumbnails(stories);
-    }
-
     // 내 사연 목록 정렬. Story 엔티티 필드에 바로 접근한다.
     private Pageable pageable(int page, int size, MyGardenSort sort) {
         int safePage = Math.max(page, 0);
@@ -218,17 +215,4 @@ public class MyGardenService {
         return PageRequest.of(safePage, safeSize, resolvedSort);
     }
 
-    // 공감 목록(StoryLike) 정렬. 최신순은 "공감을 남긴 시각"(StoryLike.createdAt) 기준이고,
-    // 조회순/공감순은 사연 자체의 속성이라 story.필드를 거쳐 접근한다.
-    private Pageable pageableForLikes(int page, int size, MyGardenSort sort) {
-        int safePage = Math.max(page, 0);
-        int safeSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
-        Sort resolvedSort = switch (sort) {
-            case VIEWS -> Sort.by(Sort.Direction.DESC, "story.viewCount").and(Sort.by(Sort.Direction.DESC, "story.id"));
-            case LIKES -> Sort.by(Sort.Direction.DESC, "story.likeCount").and(Sort.by(Sort.Direction.DESC, "story.id"));
-            case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
-        };
-
-        return PageRequest.of(safePage, safeSize, resolvedSort);
-    }
 }
