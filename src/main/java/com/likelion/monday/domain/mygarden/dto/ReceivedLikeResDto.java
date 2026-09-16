@@ -6,9 +6,6 @@ import java.time.LocalDateTime;
 @Schema(description = "내 정원 - 받은 공감 목록 항목")
 public record ReceivedLikeResDto(
 
-        @Schema(description = "공감 ID", example = "1")
-        Long likeId,
-
         @Schema(description = "사연 ID", example = "1")
         Long storyId,
 
