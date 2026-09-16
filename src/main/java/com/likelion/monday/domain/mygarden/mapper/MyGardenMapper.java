@@ -37,8 +37,7 @@ public class MyGardenMapper {
                 story.getCreatedAt());
     }
 
-    public LikedStoryResDto toLikedStoryResDto(StoryLike like, String thumbnailUrl) {
-        Story story = like.getStory();
+    public LikedStoryResDto toLikedStoryResDto(Story story, String thumbnailUrl) {
         return new LikedStoryResDto(
                 story.getId(),
                 thumbnailUrl,
