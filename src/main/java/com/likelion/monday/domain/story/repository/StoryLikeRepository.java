@@ -1,15 +1,15 @@
 package com.likelion.monday.domain.story.repository;
 
-import com.likelion.monday.domain.story.entity.StoryLike;
-import java.time.LocalDateTime;
 import com.likelion.monday.domain.story.entity.Story;
+import com.likelion.monday.domain.story.entity.StoryLike;
 import com.likelion.monday.domain.story.entity.StoryStatus;
+import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.repository.query.Param;;
 
 public interface StoryLikeRepository extends JpaRepository<StoryLike, Long> {
 
@@ -26,6 +26,12 @@ public interface StoryLikeRepository extends JpaRepository<StoryLike, Long> {
 
     // 받은 공감 목록 (페이지네이션)
     Page<StoryLike> findAllByStory_AccountId(Long accountId, Pageable pageable);
+
+    // 활동 요약: 공개된 사연이 받은 공감 수만 카운트 (비공개/검토중 사연에 달린 공감은 제외)
+    long countByStory_AccountIdAndStory_Status(Long accountId, StoryStatus status);
+
+    // 활동 요약: 공개된 사연에 대해서만 "내가 남긴 공감" 카운트
+    long countByAccountIdAndStory_Status(Long accountId, StoryStatus status);
 
     /**
      * 공감한 사연 목록: 정렬 기준별로 사연 단위(GROUP BY)로 묶어서 조회한다.
