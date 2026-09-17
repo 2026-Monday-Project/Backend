@@ -74,10 +74,14 @@ public class MyGardenService {
                 stories.getTotalPages());
     }
 
+    // 받은 공감/공감한 사연 수는 목록 조회와 동일하게 PUBLIC 사연 기준으로만 집계한다.
+    // 비공개(검토중 포함) 사연에 달린 공감까지 세면, 목록에는 없는데 배지 숫자만 남는 불일치가 생기기 때문이다.
     public MyActivitySummaryResDto getActivitySummary(Long accountId) {
         long sentStoryCount = storyRepository.countByAccountId(accountId);
-        long receivedLikeCount = storyLikeRepository.countByStory_AccountId(accountId);
-        long likedStoryCount = storyLikeRepository.countByAccountId(accountId);
+        long receivedLikeCount =
+                storyLikeRepository.countByStory_AccountIdAndStory_Status(accountId, StoryStatus.PUBLIC);
+        long likedStoryCount =
+                storyLikeRepository.countByAccountIdAndStory_Status(accountId, StoryStatus.PUBLIC);
 
         return new MyActivitySummaryResDto(sentStoryCount, receivedLikeCount, likedStoryCount);
     }
